@@ -6,132 +6,191 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <LinearLayout
-        android:id="@+id/location"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="80dp">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_location"
-            android:layout_gravity="center"
-            android:layout_marginRight="4dp"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="현재 위치"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"/>
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/tv_weather"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="현재날씨"
-        android:textSize="18sp"
-        android:textColor="@color/black"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/location"
-        android:layout_marginTop="16dp"/>
-    <ImageView
-        android:id="@+id/img_weather"
-        android:layout_width="180dp"
-        android:layout_height="180dp"
-        android:src="@drawable/weather_sunny"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/tv_weather"/>
-
-    <TextView
-        android:id="@+id/tmp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/img_weather"
-        android:layout_centerHorizontal="true"
-        android:text="24°"
-        android:textColor="@color/black"
-        android:textSize="40sp"/>
-    <LinearLayout
-        android:id="@+id/box_tmp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_below="@id/tmp"
-        android:layout_marginTop="8dp"
-        android:layout_centerHorizontal="true">
-
-        <TextView
-            android:id="@+id/tmx"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/black"
-            android:text="최고"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/black"
-            android:text="29°"
-            android:layout_marginLeft="4dp"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/black"
-            android:text="/"
-            android:layout_marginLeft="4dp"
-            android:layout_marginRight="4dp"/>
-        <TextView
-            android:id="@+id/tmn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/black"
-            android:text="최저"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/black"
-            android:text="19°"
-            android:layout_marginLeft="4dp"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="400dp"
-        android:layout_height="100dp"
-        android:layout_below="@id/box_tmp"
-        android:orientation="horizontal"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="80dp"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp">
-
-        <ImageView
-            android:id="@+id/previous"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/ic_arrow_left"/>
+            android:orientation="vertical">
 
-        <ScrollView
-            android:layout_width="0dp"
-            android:layout_weight="6"
-            android:layout_height="match_parent">
+            <!--      온도,현재위치,하늘상태,하늘상태 이미지 레이아웃      -->
+            <RelativeLayout
+                android:id="@+id/location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp">
+
+                <!--        온도, 최저/최고온도, 현재위치        -->
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="30dp">
+
+                    <!--      온도      -->
+                    <TextView
+                        android:id="@+id/tmp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="24°"
+                        android:textColor="@color/black"
+                        android:textSize="32sp" />
+
+                    <!--     최고/최저온도       -->
+                    <LinearLayout
+                        android:id="@+id/box_tmp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/tmp"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="40dp">
+
+                        <TextView
+                            android:id="@+id/today_tmx"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="최고"
+                            android:textColor="@color/black" />
+
+                        <!--  오늘의 최고온도  -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="4dp"
+                            android:text="29°"
+                            android:textColor="@color/black"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="4dp"
+                            android:layout_marginRight="4dp"
+                            android:text="/"
+                            android:textColor="@color/black" />
+
+                        <TextView
+                            android:id="@+id/today_tmn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="최저"
+                            android:textColor="@color/black" />
+
+                        <!--  오늘의 최저온도  -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="4dp"
+                            android:text="19°"
+                            android:textColor="@color/black" />
+                    </LinearLayout>
+
+                    <!--        현재위치        -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/box_tmp"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/img_location"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_location"
+                            android:layout_gravity="center"/>
+
+                        <TextView
+                            android:layout_width="130dp"
+                            android:layout_height="wrap_content"
+                            android:text="현재 위치"
+                            android:layout_marginLeft="8dp"
+                            android:textColor="@color/black"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                </RelativeLayout>
+
+                <!--        하늘상태 이미지, 하늘상태        -->
+                <LinearLayout
+                    android:layout_width="200dp"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:layout_alignParentRight="true">
+
+                    <!--      하늘상태 이미지      -->
+                    <ImageView
+                        android:id="@+id/img_weather"
+                        android:layout_width="130dp"
+                        android:layout_height="130dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/weather_sunny" />
+
+                    <!--      하늘상태      -->
+                    <TextView
+                        android:id="@+id/tv_weather"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="맑음"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="20sp"
+                        android:layout_gravity="center_horizontal"/>
+                </LinearLayout>
+            </RelativeLayout>
+
+            <!--      주간날씨 데이터를 불러오기 위한 뷰      -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyler_weather_weekly"
+                android:layout_width="400dp"
+                android:layout_height="370dp"
+                android:layout_marginTop="20dp"
+                android:layout_gravity="center"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:orientation="vertical"
+                android:background="@drawable/corner"
+                android:padding="16dp" />
+
+            <!--      위젯      -->
+            <LinearLayout
+                android:layout_width="400dp"
+                android:layout_height="100dp"
+                android:layout_below="@id/box_tmp"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal"
+                android:background="@drawable/corner">
+
+                <ImageView
+                    android:id="@+id/previous"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:src="@drawable/ic_arrow_left"
+                    android:layout_marginLeft="8dp"/>
+
+                <ScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="6">
+
+                </ScrollView>
+
+                <ImageView
+                    android:id="@+id/next"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginRight="8dp"
+                    android:src="@drawable/ic_arrow_right" />
+            </LinearLayout>
+
+        </LinearLayout>
 
 
+    </ScrollView>
 
-        </ScrollView>
-
-
-
-        <ImageView
-            android:id="@+id/next"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:src="@drawable/ic_arrow_right"/>
-    </LinearLayout>
 
 </RelativeLayout>
