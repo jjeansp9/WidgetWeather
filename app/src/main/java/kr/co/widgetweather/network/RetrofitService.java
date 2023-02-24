@@ -10,13 +10,22 @@ import retrofit2.http.Query;
 public interface RetrofitService {
 
     @GET("getMidTa?serviceKey=CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D")
-    Call<WeeklyWeatherItem> getJson(
+        Call<WeeklyWeatherItem> getJson(
         @Query("pageNo") String pageNo,
         @Query("numOfRows") String numOfRows,
         @Query("dataType") String dataType,
         @Query("regId") String regId,
-        @Query("tmFc") String tmFc,
-        @Query("taMax3") String taMax3
+        @Query("tmFc") String tmFc
+    );
+
+    // 9. GET 방식으로 서버로부터 응답을 받되, 그냥 글씨로 파싱없이
+    @GET("getMidTa?serviceKey=CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D")
+    Call<String> getPlainText(
+            @Query("pageNo") String pageNo,
+            @Query("numOfRows") String numOfRows,
+            @Query("dataType") String dataType,
+            @Query("regId") String regId,
+            @Query("tmFc") String tmFc
     );
 }
 

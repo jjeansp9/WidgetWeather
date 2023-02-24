@@ -28,9 +28,6 @@ public class MainActivity extends AppCompatActivity {
     WeeklyWeatherRecyclerAdapter adapter;
     ArrayList<WeeklyWeatherItem> weekItems = new ArrayList<>();
 
-    // 공공데이터 사이트에서 발급받은 api 키
-    static final String API_KEY = "CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,42 +38,72 @@ public class MainActivity extends AppCompatActivity {
         recycler.setAdapter(adapter);
         recycler.setLayoutManager(new LinearLayoutManager(this));
 
+//        리사이클러뷰가 잘 작동하는지 확인하기 위해 더미데이터로 테스트
 //        for(int i= 0; i<7 ; i++){
 //            weekItems.add(new WeeklyWeatherItem("월","25","19"));
 //        }
 
         Retrofit retrofit= RetrofitHelper.getInstance();
         RetrofitService retrofitService= retrofit.create(RetrofitService.class);
-        Call<WeeklyWeatherItem> call= retrofitService.getJson( "1", "1", "json", "11B00000", "202302240600", "21");
+        Call<WeeklyWeatherItem> call= retrofitService.getJson("1","10", "json", "11B10101", "202302240600");
         call.enqueue(new Callback<WeeklyWeatherItem>() {
-
-            // 데이터를 불러왔을 때
             @Override
             public void onResponse(Call<WeeklyWeatherItem> call, Response<WeeklyWeatherItem> response) {
-                weekItems.clear();
-                adapter.notifyDataSetChanged();
+                //                weekItems.clear();
+//                adapter.notifyDataSetChanged();
+
 
                 WeeklyWeatherItem item= response.body();
 
                 AlertDialog.Builder failDialog = new AlertDialog.Builder(MainActivity.this);
                 failDialog.setTitle("성공");
-                failDialog.setMessage(item.regId);
+                failDialog.setMessage(item.taMin4);
                 failDialog.show();
-
-
-
             }
 
-            // 데이터를 불러오지 못했을 때
             @Override
             public void onFailure(Call<WeeklyWeatherItem> call, Throwable t) {
-
                 AlertDialog.Builder failDialog = new AlertDialog.Builder(MainActivity.this);
                 failDialog.setTitle("실패");
                 failDialog.setMessage("데이터를 불러오지 못했습니다." + t.toString());
                 failDialog.show();
             }
         });
+
+
+
+//        json 문서 통째로 가져오는 코드
+
+//        Retrofit retrofit= RetrofitHelper.getInstance();
+//        RetrofitService retrofitService= retrofit.create(RetrofitService.class);
+//        Call<String> call= retrofitService.getPlainText("1","10","json","11B10101","202302240600");
+//        call.enqueue(new Callback<String>() {
+//
+//            // 데이터를 불러왔을 때
+//            @Override
+//            public void onResponse(Call<String> call, Response<String> response) {
+////                weekItems.clear();
+////                adapter.notifyDataSetChanged();
+//
+//
+//                String item= response.body();
+//
+//                AlertDialog.Builder failDialog = new AlertDialog.Builder(MainActivity.this);
+//                failDialog.setTitle("성공");
+//                failDialog.setMessage(item);
+//                failDialog.show();
+//            }
+//
+//            // 데이터를 불러오지 못했을 때
+//            @Override
+//            public void onFailure(Call<String> call, Throwable t) {
+//
+//                AlertDialog.Builder failDialog = new AlertDialog.Builder(MainActivity.this);
+//                failDialog.setTitle("실패");
+//                failDialog.setMessage("데이터를 불러오지 못했습니다." + t.toString());
+//                failDialog.show();
+//            }
+//        });
     }
 }
 
