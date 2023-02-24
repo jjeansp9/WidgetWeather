@@ -1,4 +1,4 @@
-package kr.co.widgetweather;
+package kr.co.widgetweather.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -12,12 +12,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
+import kr.co.widgetweather.R;
+import kr.co.widgetweather.model.WeeklyWeatherItem;
+
 public class WeeklyWeatherRecyclerAdapter extends RecyclerView.Adapter<VH> {
 
     Context context;
     ArrayList<WeeklyWeatherItem> items;
 
-    WeeklyWeatherRecyclerAdapter(Context context, ArrayList<WeeklyWeatherItem> items){
+    public WeeklyWeatherRecyclerAdapter(Context context, ArrayList<WeeklyWeatherItem> items){
         this.context = context;
         this.items= items;
     }
