@@ -4,24 +4,23 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import kr.co.widgetweather.R;
+import kr.co.widgetweather.model.Item;
 import kr.co.widgetweather.model.WeeklyWeatherItem;
 
 public class WeeklyWeatherRecyclerAdapter extends RecyclerView.Adapter<VH> {
 
-    Context context;
-    ArrayList<WeeklyWeatherItem> items;
+    List<Item> items;
 
-    public WeeklyWeatherRecyclerAdapter(Context context, ArrayList<WeeklyWeatherItem> items){
-        this.context = context;
+    public WeeklyWeatherRecyclerAdapter(List<Item> items){
         this.items= items;
     }
 
@@ -36,9 +35,11 @@ public class WeeklyWeatherRecyclerAdapter extends RecyclerView.Adapter<VH> {
 
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
-        holder.tv_week.setText(items.get(position).tvWeek); // 요일
-        holder.tv_tmx_week.setText(items.get(position).tvTmxWeek); // 주간 최고온도
-        holder.tv_tmn_week.setText(items.get(position).tvTmnWeek); // 주간 최저온도
+//        holder.tv_week.setText(items.get(position).tvWeek); // 요일
+//        holder.tv_tmx_week.setText(items.get(position).tvTmxWeek); // 주간 최고온도
+//        holder.tv_tmn_week.setText(items.get(position).tvTmnWeek); // 주간 최저온도
+        Item item= items.get(position);
+        holder.setItem(item);
     }
 
     @Override
@@ -58,6 +59,12 @@ class VH extends RecyclerView.ViewHolder{
         tv_week= itemView.findViewById(R.id.week);
         tv_tmx_week= itemView.findViewById(R.id.tmx_week);
         tv_tmn_week= itemView.findViewById(R.id.tmn_week);
+    }
+
+    public void setItem(Item item){
+        tv_week.setText(item.getRegId());
+        tv_tmx_week.setText(item.getTaMin3());
+        tv_tmn_week.setText(item.getTaMin3Low());
     }
 }
 

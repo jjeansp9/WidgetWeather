@@ -1,8 +1,6 @@
 package kr.co.widgetweather.network;
 
-import java.util.ArrayList;
-
-import kr.co.widgetweather.model.WeeklyWeatherItem;
+import kr.co.widgetweather.model.Result;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
@@ -10,7 +8,7 @@ import retrofit2.http.Query;
 public interface RetrofitService {
 
     @GET("getMidTa?serviceKey=CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D")
-        Call<WeeklyWeatherItem> getJson(
+        Call<Result> getJson(
         @Query("pageNo") String pageNo,
         @Query("numOfRows") String numOfRows,
         @Query("dataType") String dataType,
