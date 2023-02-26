@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,8 +60,8 @@ public class MainActivity extends AppCompatActivity {
                 failDialog.setMessage("");
                 failDialog.show();
 
-//                adapter= new WeeklyWeatherRecyclerAdapter(result.getResponse().getBody().getItems().getItem());
-//                recycler.setAdapter(adapter);
+                adapter= new WeeklyWeatherRecyclerAdapter(result.getResponse().getBody().getItems().getItem());
+                recycler.setAdapter(adapter);
 
             }
 
