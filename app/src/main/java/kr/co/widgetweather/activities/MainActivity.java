@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<WeeklyWeatherItem> weekItems = new ArrayList<>();
 
     String apiKey = "CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D";
-    String numOfrows = "10";
+    String numOfrows = "100";
     String pageNo = "1";
     String dataType = "XML";
     String baseDate = "20230227";
@@ -67,10 +67,16 @@ public class MainActivity extends AppCompatActivity {
         adapter = new WeeklyWeatherRecyclerAdapter(this, weekItems);
         recycler.setAdapter(adapter);
 
+
         MainThread thread = new MainThread();
         thread.start(); // xml 파싱시작
         permissionLocation(); // 위치 권한
         getLocation(); // 위치 가져오기
+
+        long now= System.currentTimeMillis();
+        Date date = new Date(now-(1000*60*60*24*1)); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
+        SimpleDateFormat sdf= new SimpleDateFormat("yyyyMMdd");
+        String getTime = sdf.format(date);
 
 
 
@@ -128,9 +134,10 @@ public class MainActivity extends AppCompatActivity {
             });
 
             long now= System.currentTimeMillis();
-            Date date = new Date(now);
+            Date date = new Date(now+(1000*60*60*24*2)); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
             SimpleDateFormat sdf= new SimpleDateFormat("yyyyMMdd");
             String getTime = sdf.format(date);
+
 
             // 단기예보
             String apiUrl= "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?"

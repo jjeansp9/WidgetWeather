@@ -15,12 +15,12 @@
     <!--  하늘상태 이미지  -->
     <ImageView
         android:id="@+id/weather_week"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_toLeftOf="@id/tmx_week"
-        android:src="@drawable/weather_sunny"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_centerVertical="true"
-        android:layout_marginRight="20dp"/>
+        android:layout_marginLeft="200dp"
+        android:layout_marginRight="20dp"
+        android:src="@drawable/weather_sunny" />
 
     <!--  최고기온  -->
     <TextView
