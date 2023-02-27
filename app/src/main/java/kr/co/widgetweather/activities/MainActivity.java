@@ -2,30 +2,18 @@ package kr.co.widgetweather.activities;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -38,6 +26,8 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 import kr.co.widgetweather.R;
 import kr.co.widgetweather.databinding.ActivityMainBinding;
@@ -61,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
     String nx = "55";
     String ny = "127";
 
+    TextView locations;
+
     private FusedLocationProviderClient fusedLocationClient;
 
     @Override
@@ -74,19 +66,23 @@ public class MainActivity extends AppCompatActivity {
         recycler.setAdapter(adapter);
 
         MainThread thread = new MainThread();
-        thread.start();
+        thread.start(); // xml 파싱시작
+        permissionLocation(); // 위치 권한
+        getLocation(); // 위치 가져오기
 
-        // 위치 권한
+
+
+
+
+    } // onCreate()
+
+    // 위치권한
+    void permissionLocation(){
         locationPermissionRequest.launch(new String[]{
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
         });
-
-
-
-        getLocation();
-
-    } // onCreate()
+    }
 
     // 마지막으로 알려진 위치 가져오기
     @SuppressLint("MissingPermission")
@@ -99,11 +95,9 @@ public class MainActivity extends AppCompatActivity {
                     public void onSuccess(Location location) {
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
-                            Log.d("MyTag", location.getLatitude()+","+location.getLongitude());
-                        }else{
-                            Log.e("MyTag", "failed");
+                            locations= findViewById(R.id.location);
+                            locations.setText(location.getLatitude()+","+location.getLongitude());
                         }
-                        Log.d("MyTag", location.getLatitude()+","+location.getLongitude());
                     }
                 });
     }
@@ -123,11 +117,7 @@ public class MainActivity extends AppCompatActivity {
             });
 
 
-
-
-
-
-    // XML 파싱클래스
+    // XML 파싱
     class MainThread extends Thread{
         @Override
         public void run() {
@@ -188,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
                                 weekItem= new WeeklyWeatherItem();
                             }else if(tagName.equals("category")){ // 요일
                                 xpp.next();
-                                weekItem.tvWeek= xpp.getText();
+                                weekItem.tvWeek= dayWeek();
 
                             }else if(tagName.equals("fcstTime")){
                                 xpp.next();
@@ -220,12 +210,43 @@ public class MainActivity extends AppCompatActivity {
         } // run()
     } // Thread()
 
-    void geoCoding(String address){
+    // 요일관련 메소드
+    String dayWeek(){
+        long now= System.currentTimeMillis();
+        Date date = new Date(now);
 
+        Calendar cal= Calendar.getInstance();
+        cal.setTime(date);
 
+        int dayWeeks = cal.get(Calendar.DAY_OF_WEEK);
+        String strWeek= "";
 
-
+        switch(dayWeeks){
+            case 1:
+                strWeek = "일요일";
+                break;
+            case 2:
+                strWeek = "월요일";
+                break;
+            case 3:
+                strWeek = "화요일";
+                break;
+            case 4:
+                strWeek = "수요일";
+                break;
+            case 5:
+                strWeek = "목요일";
+                break;
+            case 6:
+                strWeek = "금요일";
+                break;
+            case 7:
+                strWeek = "토요일";
+                break;
+        }
+        return strWeek;
     }
+
 
 }
 
