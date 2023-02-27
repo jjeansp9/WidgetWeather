@@ -10,6 +10,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -25,6 +26,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -83,12 +85,23 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.ACCESS_COARSE_LOCATION
         });
     }
+    ActivityResultLauncher<String[]> locationPermissionRequest = registerForActivityResult(new ActivityResultContracts
+            .RequestMultiplePermissions(), result -> {
+        Boolean fineLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
+        Boolean coarseLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION,false);
+        if (fineLocationGranted != null && fineLocationGranted) {
+
+        }else if (coarseLocationGranted != null && coarseLocationGranted) {
+
+        }else {
+
+        }
+    });
 
     // 마지막으로 알려진 위치 가져오기
     @SuppressLint("MissingPermission")
     void getLocation(){
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
@@ -102,21 +115,6 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    // 위치 권한
-    ActivityResultLauncher<String[]> locationPermissionRequest = registerForActivityResult(new ActivityResultContracts
-            .RequestMultiplePermissions(), result -> {
-                Boolean fineLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
-                Boolean coarseLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION,false);
-                if (fineLocationGranted != null && fineLocationGranted) {
-                            // Precise location access granted.
-                }else if (coarseLocationGranted != null && coarseLocationGranted) {
-                    // Only approximate location access granted.
-                }else {
-                    // No location access granted.
-                }
-            });
-
-
     // XML 파싱
     class MainThread extends Thread{
         @Override
@@ -129,24 +127,29 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+            long now= System.currentTimeMillis();
+            Date date = new Date(now);
+            SimpleDateFormat sdf= new SimpleDateFormat("yyyyMMdd");
+            String getTime = sdf.format(date);
+
             // 단기예보
             String apiUrl= "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?"
-                    + "serviceKey=" + apiKey
-                    + "&pageNo=" + pageNo
-                    + "&numOfRows=" + numOfrows
-                    + "&dataType" + dataType
-                    + "&base_date=" + baseDate
-                    + "&base_time=" + baseTime
-                    + "&nx=" + nx
-                    + "&ny=" + ny;
+                    + "serviceKey=" + apiKey // api 키
+                    + "&pageNo=" + pageNo // 페이지 번호
+                    + "&numOfRows=" + numOfrows // 한 페이지 결과 수
+                    + "&dataType" + dataType // 응답자료형식(XML/JSON)
+                    + "&base_date=" + getTime // 발표일자 (ex.20230227)
+                    + "&base_time=" + baseTime // 발표시각 (ex.0500)
+                    + "&nx=" + nx // 예보지점 x좌표
+                    + "&ny=" + ny; // 예보지점 y좌표
 
             // 중기예보
             String apiUrl2= "https://apis.data.go.kr/1360000/MidFcstInfoService/getMidTa?"
-                    + "serviceKey=" + apiKey
-                    + "&pageNo=" + pageNo
-                    + "&numOfRows=" + numOfrows
-                    + "&regId=" + "11B10101"
-                    + "&tmFc=" + baseDate+baseTime;
+                    + "serviceKey=" + apiKey // api 키
+                    + "&pageNo=" + pageNo // 페이지 번호
+                    + "&numOfRows=" + numOfrows // 한 페이지 결과 수
+                    + "&regId=" + "11B10101" // 예보 지역코드
+                    + "&tmFc=" + baseDate+baseTime; // 발표날짜+발표시간 (ex.202302270600)
 
             try {
                 URL url= new URL(apiUrl);
@@ -160,7 +163,6 @@ public class MainActivity extends AppCompatActivity {
                 xpp.setInput(inputStreamReader);
 
                 int eventType= xpp.getEventType();
-
                 WeeklyWeatherItem weekItem= null;
 
                 while(eventType != XmlPullParser.END_DOCUMENT){
@@ -180,10 +182,10 @@ public class MainActivity extends AppCompatActivity {
                                 xpp.next();
                                 weekItem.tvWeek= dayWeek();
 
-                            }else if(tagName.equals("fcstTime")){
+                            }else if(tagName.equals("fcstTime")){ // 기온
                                 xpp.next();
                                 weekItem.tvTmxWeek= xpp.getText();
-                            }else if(tagName.equals("fcstValue")){
+                            }else if(tagName.equals("fcstValue")){ // 최고기온
                                 xpp.next();
                                 weekItem.tvTmnWeek= xpp.getText();
                             }
