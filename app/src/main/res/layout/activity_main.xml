@@ -17,7 +17,6 @@
 
             <!--      온도,현재위치,하늘상태,하늘상태 이미지 레이아웃      -->
             <RelativeLayout
-                android:id="@+id/location"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="30dp">
@@ -101,6 +100,7 @@
                             android:layout_gravity="center"/>
 
                         <TextView
+                            android:id="@+id/location"
                             android:layout_width="130dp"
                             android:layout_height="wrap_content"
                             android:text="현재 위치"

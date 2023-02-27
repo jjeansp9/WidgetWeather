@@ -18,28 +18,29 @@ import kr.co.widgetweather.model.WeeklyWeatherItem;
 
 public class WeeklyWeatherRecyclerAdapter extends RecyclerView.Adapter<VH> {
 
-    List<Item> items;
+    Context context;
+    List<WeeklyWeatherItem> items;
 
-    public WeeklyWeatherRecyclerAdapter(List<Item> items){
-        this.items= items;
+    public WeeklyWeatherRecyclerAdapter(Context context, List<WeeklyWeatherItem> items) {
+        this.context = context;
+        this.items = items;
     }
-
     @NonNull
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        Context context= parent.getContext();
-        LayoutInflater inflater= (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = inflater.inflate(R.layout.item_recycler_weather_weekly, parent, false);
-        return new VH(view);
+        LayoutInflater layoutInflater= LayoutInflater.from(context);
+        View itemView= layoutInflater.inflate(R.layout.item_recycler_weather_weekly, parent, false);
+
+        VH holder= new VH(itemView);
+        return holder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
-//        holder.tv_week.setText(items.get(position).tvWeek); // 요일
-//        holder.tv_tmx_week.setText(items.get(position).tvTmxWeek); // 주간 최고온도
-//        holder.tv_tmn_week.setText(items.get(position).tvTmnWeek); // 주간 최저온도
-        Item item= items.get(position);
-        holder.setItem(item);
+        holder.tv_week.setText(items.get(position).tvWeek); // 요일
+        holder.tv_tmx_week.setText(items.get(position).tvTmxWeek); // 주간 최고온도
+        holder.tv_tmn_week.setText(items.get(position).tvTmnWeek); // 주간 최저온도
+
     }
 
     @Override
@@ -59,12 +60,6 @@ class VH extends RecyclerView.ViewHolder{
         tv_week= itemView.findViewById(R.id.week);
         tv_tmx_week= itemView.findViewById(R.id.tmx_week);
         tv_tmn_week= itemView.findViewById(R.id.tmn_week);
-    }
-
-    public void setItem(Item item){
-        tv_week.setText(item.getRegId());
-        tv_tmx_week.setText(item.getTaMin3());
-        tv_tmn_week.setText(item.getTaMin3Low());
     }
 }
 
