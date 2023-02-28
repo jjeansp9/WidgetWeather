@@ -38,8 +38,7 @@ public class WeeklyWeatherRecyclerAdapter extends RecyclerView.Adapter<VH> {
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         holder.tv_week.setText(items.get(position).tvWeek); // 요일
-        holder.tv_tmx_week.setText(items.get(position).tvTmxWeek); // 주간 최고온도
-        holder.tv_tmn_week.setText(items.get(position).tvTmnWeek); // 주간 최저온도
+        holder.tv_tmx_week.setText(items.get(position).tvTmpWeek); // 주간 온도
 
     }
 
@@ -58,8 +57,7 @@ class VH extends RecyclerView.ViewHolder{
     public VH(@NonNull View itemView) {
         super(itemView);
         tv_week= itemView.findViewById(R.id.week);
-        tv_tmx_week= itemView.findViewById(R.id.tmx_week);
-        tv_tmn_week= itemView.findViewById(R.id.tmn_week);
+        tv_tmx_week= itemView.findViewById(R.id.tmp_week);
     }
 }
 

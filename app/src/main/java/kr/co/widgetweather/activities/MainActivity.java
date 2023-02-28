@@ -8,7 +8,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
@@ -44,16 +46,9 @@ public class MainActivity extends AppCompatActivity {
     WeeklyWeatherRecyclerAdapter adapter;
     ArrayList<WeeklyWeatherItem> weekItems = new ArrayList<>();
 
-    String apiKey = "CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D";
-    String numOfrows = "100";
-    String pageNo = "1";
-    String dataType = "XML";
-    String baseDate = "20230227";
-    String baseTime = "0500";
-    String nx = "55";
-    String ny = "127";
-
-    TextView locations;
+    TextView loc;
+    TextView tmp;
+    TextView weather;
 
     private FusedLocationProviderClient fusedLocationClient;
 
@@ -67,46 +62,43 @@ public class MainActivity extends AppCompatActivity {
         adapter = new WeeklyWeatherRecyclerAdapter(this, weekItems);
         recycler.setAdapter(adapter);
 
-
-        MainThread thread = new MainThread();
-        thread.start(); // xml 파싱시작
         permissionLocation(); // 위치 권한
         getLocation(); // 위치 가져오기
+        MainThread thread = new MainThread(); // MainThread() 생성
+        thread.start(); // xml 파싱시작
 
-        long now= System.currentTimeMillis();
-        Date date = new Date(now-(1000*60*60*24*1)); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
-        SimpleDateFormat sdf= new SimpleDateFormat("yyyyMMdd");
+        long now = System.currentTimeMillis();
+        Date date = new Date(now - (1000 * 60 * 60 * 24 * 1)); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String getTime = sdf.format(date);
-
-
-
 
 
     } // onCreate()
 
     // 위치권한
-    void permissionLocation(){
+    void permissionLocation() {
         locationPermissionRequest.launch(new String[]{
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
         });
     }
+
     ActivityResultLauncher<String[]> locationPermissionRequest = registerForActivityResult(new ActivityResultContracts
             .RequestMultiplePermissions(), result -> {
         Boolean fineLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
-        Boolean coarseLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION,false);
+        Boolean coarseLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false);
         if (fineLocationGranted != null && fineLocationGranted) {
 
-        }else if (coarseLocationGranted != null && coarseLocationGranted) {
+        } else if (coarseLocationGranted != null && coarseLocationGranted) {
 
-        }else {
+        } else {
 
         }
     });
 
     // 마지막으로 알려진 위치 가져오기
     @SuppressLint("MissingPermission")
-    void getLocation(){
+    void getLocation() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -114,15 +106,22 @@ public class MainActivity extends AppCompatActivity {
                     public void onSuccess(Location location) {
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
-                            locations= findViewById(R.id.location);
-                            locations.setText(location.getLatitude()+","+location.getLongitude());
+                            loc = findViewById(R.id.location);
+                            loc.setText((int) location.getLatitude() + "," + (int) location.getLongitude());
+
+                            SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
+                            SharedPreferences.Editor editor = pref.edit();
+                            editor.putInt("nx", (int)(location.getLatitude()));
+                            editor.putInt("ny", (int)(location.getLongitude()));
+                            editor.commit();
                         }
                     }
                 });
     }
 
+
     // XML 파싱
-    class MainThread extends Thread{
+    class MainThread extends Thread {
         @Override
         public void run() {
             runOnUiThread(new Runnable() {
@@ -133,11 +132,36 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-            long now= System.currentTimeMillis();
-            Date date = new Date(now+(1000*60*60*24*2)); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
-            SimpleDateFormat sdf= new SimpleDateFormat("yyyyMMdd");
-            String getTime = sdf.format(date);
+            String apiKey = "CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D";
+            String numOfrows = "2000";
+            String pageNo = "1";
+            String dataType = "XML";
+            String baseDate = "20230227";
+            String baseTime = "0500";
+            int nx= 57; // 위도
+            int ny= 127; // 경도
+            String type= "";
+            int itemNum= 0;
+            int tmpResult= 0;
+            int sky= 0; // 하늘상태 ( 0~5 맑음, 6~8 구름많음, 9~10 흐림 )
+            int changeDay= 0;
+            String fcstDate = null;
+            String fcstTime = null;
 
+            SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
+            nx= pref.getInt("nx", nx);
+            ny= pref.getInt("ny", ny);
+
+            long now= System.currentTimeMillis();
+            Date date = new Date(now); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
+
+            SimpleDateFormat sdf= new SimpleDateFormat("yyyyMMdd");
+            SimpleDateFormat sdfHour = new SimpleDateFormat("HH");
+
+            String getTime = sdf.format(date);
+            String getHour = sdfHour.format(date);
+
+            Log.d("sdf",getHour);
 
             // 단기예보
             String apiUrl= "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?"
@@ -149,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
                     + "&base_time=" + baseTime // 발표시각 (ex.0500)
                     + "&nx=" + nx // 예보지점 x좌표
                     + "&ny=" + ny; // 예보지점 y좌표
+            Log.d("values", nx+","+ny);
 
             // 중기예보
             String apiUrl2= "https://apis.data.go.kr/1360000/MidFcstInfoService/getMidTa?"
@@ -159,18 +184,27 @@ public class MainActivity extends AppCompatActivity {
                     + "&tmFc=" + baseDate+baseTime; // 발표날짜+발표시간 (ex.202302270600)
 
             try {
-                URL url= new URL(apiUrl);
+                URL urlToday= new URL(apiUrl);
+                URL urlWeek= new URL(apiUrl2);
 
-                InputStream inputStream= url.openStream();
-                InputStreamReader inputStreamReader= new InputStreamReader(inputStream);
+                InputStream inputStreamToday= urlToday.openStream();
+                InputStream inputStreamWeek= urlWeek.openStream();
+
+                InputStreamReader inputStreamReaderToday= new InputStreamReader(inputStreamToday);
+                InputStreamReader inputStreamReaderWeek= new InputStreamReader(inputStreamWeek);
 
                 XmlPullParserFactory factory= XmlPullParserFactory.newInstance();
                 XmlPullParser xpp= factory.newPullParser();
+                XmlPullParser xppWeek= factory.newPullParser();
 
-                xpp.setInput(inputStreamReader);
+                xpp.setInput(inputStreamReaderToday);
+                xppWeek.setInput(inputStreamReaderWeek);
 
                 int eventType= xpp.getEventType();
                 WeeklyWeatherItem weekItem= null;
+
+
+                // SKY : 하늘상태 ( 0~5 맑음, 6~8 구름많음, 9~10 흐림 )
 
                 while(eventType != XmlPullParser.END_DOCUMENT){
                     switch (eventType){
@@ -185,28 +219,70 @@ public class MainActivity extends AppCompatActivity {
 
                             if(tagName.equals("item")){
                                 weekItem= new WeeklyWeatherItem();
-                            }else if(tagName.equals("category")){ // 요일
+                            }else if(tagName.equals("category")){
                                 xpp.next();
-                                weekItem.tvWeek= dayWeek();
 
-                            }else if(tagName.equals("fcstTime")){ // 기온
+                                if(xpp.getText().equals("TMP") && itemNum == 0){
+                                    weekItem.tvWeek= dayWeek().length()+changeDay+""; // 현재 요일
+                                    type = xpp.getText();
+                                    itemNum+=1;
+
+                                    Log.d("itemNum", itemNum+"");
+                                    Log.d("tmpResult", getTime);
+                                }
+
+                            }else if (tagName.equals("fcstDate") && type.equals("TMP")){
                                 xpp.next();
-                                weekItem.tvTmxWeek= xpp.getText();
-                            }else if(tagName.equals("fcstValue")){ // 최고기온
+                                fcstDate= xpp.getText();
+
+                            }else if (tagName.equals("fcstTime") && type.equals("TMP")) {
                                 xpp.next();
-                                weekItem.tvTmnWeek= xpp.getText();
+                                fcstTime= xpp.getText();
+
+                            }else if (tagName.equals("fcstValue") && type.equals("TMP") &&fcstTime.equals(getHour+"00") && fcstDate.equals(getTime)) {
+                                xpp.next();
+                                weekItem.tvTmpWeek = xpp.getText() + "°";
+
+                                type = "";
+                                itemNum += 1;
+                                tmpResult += 1;
+
+                                Log.d("itemNum", itemNum+"");
+                                Log.d("tmpResults", fcstDate);
+                                Log.d("tmpResult", getTime);
+
                             }
                             break;
+
                         case XmlPullParser.TEXT:
                             break;
+
                         case XmlPullParser.END_TAG:
-                            if(xpp.getName().equals("item")){
+                            if(xpp.getName().equals("item") && itemNum == 2){
                                 weekItems.add(weekItem);
+                                itemNum=0;
+                                changeDay+=1;
+
+                                date = new Date(now+(1000*60*60*24*changeDay)); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*1))
+                                getTime= sdf.format(date);
+
+                                Log.d("itemNum", itemNum+"");
+                                Log.d("tmpResults", fcstDate);
+                                Log.d("tmpResult", getTime);
+
+                            }
+
+                            if (xpp.getName().equals("items")){
+                                tmpResult=0;
                             }
                             break;
+
                     } // switch
                     eventType= xpp.next();
                 } // while
+//                tmp = findViewById(R.id.tmp);
+//                tmp.setText(xpp.getText()+"°");
+
 
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -215,6 +291,8 @@ public class MainActivity extends AppCompatActivity {
             } catch (XmlPullParserException e) {
                 e.printStackTrace();
             }
+
+
 
         } // run()
     } // Thread()
@@ -231,6 +309,9 @@ public class MainActivity extends AppCompatActivity {
         String strWeek= "";
 
         switch(dayWeeks){
+            case 0:
+                strWeek = "토요일";
+                break;
             case 1:
                 strWeek = "일요일";
                 break;

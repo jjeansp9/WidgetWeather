@@ -5,6 +5,14 @@ import com.google.gson.annotations.SerializedName;
 
 public class Item {
 
+    int nx;
+    int ny;
+
+    public Item(int nx, int ny) {
+        this.nx = nx;
+        this.ny = ny;
+    }
+
     @SerializedName("regId")
     @Expose
     private String regId;

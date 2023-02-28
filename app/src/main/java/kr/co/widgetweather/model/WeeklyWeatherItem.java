@@ -2,13 +2,11 @@ package kr.co.widgetweather.model;
 
 public class WeeklyWeatherItem {
     public String tvWeek;
-    public String tvTmxWeek;
-    public String tvTmnWeek;
+    public String tvTmpWeek;
 
-    public WeeklyWeatherItem(String tvWeek, String tvTmxWeek, String tvTmnWeek) {
+    public WeeklyWeatherItem(String tvWeek, String tvTmpWeek, String tvTmnWeek) {
         this.tvWeek = tvWeek;
-        this.tvTmxWeek = tvTmxWeek;
-        this.tvTmnWeek = tvTmnWeek;
+        this.tvTmpWeek = tvTmpWeek;
     }
 
     public WeeklyWeatherItem() {

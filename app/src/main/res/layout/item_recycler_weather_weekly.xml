@@ -5,47 +5,47 @@
     android:layout_marginBottom="16dp">
 
     <!--  요일  -->
-    <TextView
-        android:id="@+id/week"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="요일"
-        android:textSize="22sp"/>
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true">
+        <TextView
+            android:id="@+id/week"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="요일"
+            android:textSize="22sp"/>
 
-    <!--  하늘상태 이미지  -->
-    <ImageView
-        android:id="@+id/weather_week"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="200dp"
-        android:layout_marginRight="20dp"
-        android:src="@drawable/weather_sunny" />
+        <!--  하늘상태 이미지  -->
+<!--        <ImageView-->
+<!--            android:id="@+id/weather_week"-->
+<!--            android:layout_width="30dp"-->
+<!--            android:layout_height="30dp"-->
+<!--            android:layout_centerVertical="true"-->
+<!--            android:layout_marginLeft="50dp"-->
+<!--            android:layout_marginRight="20dp"-->
+<!--            android:src="@drawable/weather_sunny" />-->
 
-    <!--  최고기온  -->
-    <TextView
-        android:id="@+id/tmx_week"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="29°"
-        android:textSize="22sp"
-        android:layout_toLeftOf="@id/center"/>
-    <TextView
-        android:id="@+id/center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="/"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
-        android:textSize="22sp"
-        android:layout_toLeftOf="@id/tmn_week"/>
-    <TextView
-        android:id="@+id/tmn_week"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="14°"
-        android:textSize="22sp"
-        android:layout_alignParentRight="true"/>
+        <!--  기온  -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="22sp"
+            android:layout_marginLeft="60dp"
+            android:layout_marginRight="10dp"
+            android:text="기온 : "/>
+        <TextView
+            android:id="@+id/tmp_week"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="14°"
+            android:textSize="22sp"
+            android:layout_alignParentRight="true"/>
+
+
+    </LinearLayout>
 
 
 </RelativeLayout>
