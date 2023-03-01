@@ -67,12 +67,6 @@ public class MainActivity extends AppCompatActivity {
         MainThread thread = new MainThread(); // MainThread() 생성
         thread.start(); // xml 파싱시작
 
-        long now = System.currentTimeMillis();
-        Date date = new Date(now - (1000 * 60 * 60 * 24 * 1)); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-        String getTime = sdf.format(date);
-
-
     } // onCreate()
 
     // 위치권한
@@ -129,14 +123,14 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     weekItems.clear();
                     adapter.notifyDataSetChanged();
+
                 }
             });
 
             String apiKey = "CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D";
-            String numOfrows = "2000";
+            String numOfrows = "1000";
             String pageNo = "1";
             String dataType = "XML";
-            String baseDate = "20230227";
             String baseTime = "0500";
             int nx= 57; // 위도
             int ny= 127; // 경도
@@ -161,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
             String getTime = sdf.format(date);
             String getHour = sdfHour.format(date);
 
-            Log.d("sdf",getHour);
+            Log.d("dates", getTime+","+getHour);
 
             // 단기예보
             String apiUrl= "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?"
@@ -181,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
                     + "&pageNo=" + pageNo // 페이지 번호
                     + "&numOfRows=" + numOfrows // 한 페이지 결과 수
                     + "&regId=" + "11B10101" // 예보 지역코드
-                    + "&tmFc=" + baseDate+baseTime; // 발표날짜+발표시간 (ex.202302270600)
+                    + "&tmFc=" + getTime + getHour + "00"; // 발표날짜+발표시간 (ex.202302270600)
 
             try {
                 URL urlToday= new URL(apiUrl);
@@ -200,14 +194,17 @@ public class MainActivity extends AppCompatActivity {
                 xpp.setInput(inputStreamReaderToday);
                 xppWeek.setInput(inputStreamReaderWeek);
 
-                int eventType= xpp.getEventType();
+                int eventTypeDay= xpp.getEventType();
+                int eventTypeWeek= xppWeek.getEventType();
                 WeeklyWeatherItem weekItem= null;
 
 
                 // SKY : 하늘상태 ( 0~5 맑음, 6~8 구름많음, 9~10 흐림 )
 
-                while(eventType != XmlPullParser.END_DOCUMENT){
-                    switch (eventType){
+                while(eventTypeDay != XmlPullParser.END_DOCUMENT && eventTypeWeek != XmlPullParser.END_DOCUMENT){
+
+                    // 단기예보 api
+                    switch (eventTypeDay){
                         case XmlPullParser.START_DOCUMENT:
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -222,35 +219,38 @@ public class MainActivity extends AppCompatActivity {
                             }else if(tagName.equals("category")){
                                 xpp.next();
 
-                                if(xpp.getText().equals("TMP") && itemNum == 0){
-                                    weekItem.tvWeek= dayWeek().length()+changeDay+""; // 현재 요일
+                                if(xpp.getText().equals("TMP")){  // 카테고리 : TMP(기온)
+                                    weekItem.tvWeek= dayWeek(changeDay); // 요일
                                     type = xpp.getText();
-                                    itemNum+=1;
 
-                                    Log.d("itemNum", itemNum+"");
-                                    Log.d("tmpResult", getTime);
+//                                     tmp = findViewById(R.id.tmp);
+//                                    tmp.setText(xpp.getText()+"°");
                                 }
 
-                            }else if (tagName.equals("fcstDate") && type.equals("TMP")){
+                            }else if (tagName.equals("fcstDate") && type.equals("TMP") && itemNum==0){  // 날짜
                                 xpp.next();
                                 fcstDate= xpp.getText();
 
-                            }else if (tagName.equals("fcstTime") && type.equals("TMP")) {
+                                if (fcstDate.equals(getTime)){
+                                    itemNum+=1;
+                                    fcstDate= xpp.getText();
+                                }
+
+                            }else if (tagName.equals("fcstTime") && type.equals("TMP")&& itemNum==1) {  // 시간
                                 xpp.next();
                                 fcstTime= xpp.getText();
+                                if (fcstTime.equals(getHour+"00")){
+                                    itemNum+=1;
+                                    fcstTime= xpp.getText();
+                                }
 
-                            }else if (tagName.equals("fcstValue") && type.equals("TMP") &&fcstTime.equals(getHour+"00") && fcstDate.equals(getTime)) {
+                            // 기온 값
+                            }else if (tagName.equals("fcstValue") && type.equals("TMP") && fcstTime.equals(getHour+"00") && fcstDate.equals(getTime) && itemNum==2) {
                                 xpp.next();
-                                weekItem.tvTmpWeek = xpp.getText() + "°";
-
+                                weekItem.tvTmpWeek = xpp.getText() + "°"; // 기온
                                 type = "";
                                 itemNum += 1;
-                                tmpResult += 1;
-
                                 Log.d("itemNum", itemNum+"");
-                                Log.d("tmpResults", fcstDate);
-                                Log.d("tmpResult", getTime);
-
                             }
                             break;
 
@@ -258,32 +258,79 @@ public class MainActivity extends AppCompatActivity {
                             break;
 
                         case XmlPullParser.END_TAG:
-                            if(xpp.getName().equals("item") && itemNum == 2){
+                            if(xpp.getName().equals("item") && itemNum == 3){
                                 weekItems.add(weekItem);
+                                Log.d("items", itemNum+"");
                                 itemNum=0;
                                 changeDay+=1;
 
                                 date = new Date(now+(1000*60*60*24*changeDay)); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*1))
                                 getTime= sdf.format(date);
-
-                                Log.d("itemNum", itemNum+"");
-                                Log.d("tmpResults", fcstDate);
-                                Log.d("tmpResult", getTime);
-
                             }
 
-                            if (xpp.getName().equals("items")){
-                                tmpResult=0;
+                            if (xpp.getName().equals("items") && tmpResult==0){
+                                tmpResult=1;
                             }
                             break;
-
                     } // switch
-                    eventType= xpp.next();
+                    eventTypeDay= xpp.next();
+
+                    // 단기예보 api의 데이터를 모두 불러왔을 때 실행
+                    if (tmpResult== 1){
+                        // 중기예보 api
+                        switch (eventTypeWeek){
+                            case XmlPullParser.START_DOCUMENT:
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        adapter.notifyDataSetChanged();
+                                    }
+                                });
+                                break;
+                            case XmlPullParser.START_TAG:
+                                String tagName= xppWeek.getName();
+                                if(tagName.equals("item")){
+                                    weekItem= new WeeklyWeatherItem();
+                                }else if(tagName.equals("taMin3")){ // 3일 후 최저기온
+                                    xppWeek.next();
+                                    weekItem.tvWeek= dayWeek(changeDay); // 현재 요일
+                                    weekItem.tvTmpWeek = xppWeek.getText() + "°"; // 기온
+                                    changeDay+=1;
+                                    Log.d("true???", tmpResult+"");
+
+                                }else if(tagName.equals("taMin4")){ // 4일 후 최저기온
+                                    xppWeek.next();
+                                    weekItem.tvWeek= dayWeek(changeDay); // 현재 요일
+                                    weekItem.tvTmpWeek = xppWeek.getText() + "°"; // 기온
+                                    changeDay+=1;
+
+                                }else if(tagName.equals("taMin5")){ // 5일 후 최저기온
+                                    xppWeek.next();
+                                    weekItem.tvWeek= dayWeek(changeDay); // 현재 요일
+                                    weekItem.tvTmpWeek = xppWeek.getText() + "°"; // 기온
+                                    changeDay+=1;
+
+                                }else if(tagName.equals("taMin6")){ // 6일 후 최저기온
+                                    xppWeek.next();
+                                    weekItem.tvWeek= dayWeek(changeDay); // 현재 요일
+                                    weekItem.tvTmpWeek = xppWeek.getText() + "°"; // 기온
+                                    changeDay+=1;
+                                }
+                                break;
+                            case XmlPullParser.TEXT:
+                                break;
+
+                            case XmlPullParser.END_TAG:
+                                if(xppWeek.getName().equals("item")){
+                                    weekItems.add(weekItem);
+                                    tmpResult+=1;
+                                }
+                                break;
+                        } // switch
+                        eventTypeWeek= xppWeek.next();
+                    } // if
+
                 } // while
-//                tmp = findViewById(R.id.tmp);
-//                tmp.setText(xpp.getText()+"°");
-
-
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -298,7 +345,7 @@ public class MainActivity extends AppCompatActivity {
     } // Thread()
 
     // 요일관련 메소드
-    String dayWeek(){
+    String dayWeek(int i){
         long now= System.currentTimeMillis();
         Date date = new Date(now);
 
@@ -308,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
         int dayWeeks = cal.get(Calendar.DAY_OF_WEEK);
         String strWeek= "";
 
-        switch(dayWeeks){
+        switch(dayWeeks+i){
             case 0:
                 strWeek = "토요일";
                 break;
