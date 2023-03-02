@@ -22,6 +22,8 @@
         android:theme="@style/Theme.WidgetWeather"
         android:usesCleartextTraffic="true"
         tools:targetApi="31" >
+
+        <!--    Widget    -->
         <receiver
             android:name=".WidgetProject"
             android:exported="false" >

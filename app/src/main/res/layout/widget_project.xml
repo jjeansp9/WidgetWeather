@@ -2,18 +2,86 @@
     style="@style/Widget.WidgetWeather.AppWidget.Container"
     android:theme="@style/Theme.WidgetWeather.AppWidgetContainer"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:backgroundTint="#2AFFFFFF">
+
+    <ImageView
+        android:id="@+id/previous"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/ic_arrow_left"
+        android:layout_centerVertical="true"/>
+
+    <ImageView
+        android:id="@+id/img_sky"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="54dp"
+        android:src="@drawable/weather_sunny" />
 
     <TextView
-        style="@style/Widget.WidgetWeather.AppWidget.InnerView"
-        android:id="@+id/appwidget_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
+        android:text="7°"
+        android:textSize="40sp"
+        android:textColor="@color/black"
         android:layout_centerVertical="true"
-        android:text="@string/appwidget_text"
-        android:textSize="24sp"
-        android:textStyle="bold|italic"
-        android:layout_margin="8dp"
-        android:contentDescription="@string/appwidget_text" />
+        android:layout_toRightOf="@id/img_sky"/>
+
+
+    <RelativeLayout
+        android:layout_width="110dp"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@id/next">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentRight="true">
+
+            <ImageView
+                android:id="@+id/img_loc"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_location"
+                android:layout_toLeftOf="@id/tv_loc"/>
+
+            <TextView
+                android:id="@+id/tv_loc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="현재 위치"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:layout_marginLeft="2dp"
+                android:layout_alignParentRight="true"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_sky"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:text="맑음"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:layout_alignParentRight="true"/>
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/next"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/ic_arrow_right"
+        android:layout_centerVertical="true"/>
+
 </RelativeLayout>
