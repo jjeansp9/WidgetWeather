@@ -49,8 +49,8 @@ public class MainActivity extends AppCompatActivity {
     WeeklyWeatherRecyclerAdapter adapter;
     ArrayList<WeeklyWeatherItem> weekItems = new ArrayList<>();
 
-    int nx= 57; // 위도
-    int ny= 127; // 경도
+    String nx= "57"; // 위도
+    String ny= "127"; // 경도
 
     TextView loc;
     TextView tmp;
@@ -78,8 +78,8 @@ public class MainActivity extends AppCompatActivity {
         loadData(); // 디바이스에 저장된 데이터들 불러오기
 
         SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
-        nx= pref.getInt("nx", nx);
-        ny= pref.getInt("ny", ny);
+        nx= pref.getString("nx", nx);
+        ny= pref.getString("ny", ny);
         changeToAddress(this, nx, ny);
 
     } // onCreate()
@@ -141,31 +141,41 @@ public class MainActivity extends AppCompatActivity {
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
 
-                            //loc = findViewById(R.id.location);
-                            //loc.setText(changeToAddress(this, location.getLatitude(), location.getLongitude()));
-
                             SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
                             SharedPreferences.Editor editor = pref.edit();
-                            editor.putInt("nx", (int)(location.getLatitude()));
-                            editor.putInt("ny", (int)(location.getLongitude()));
+
+                            editor.putString("nx", Double.toString(location.getLatitude()));
+                            editor.putString("ny", Double.toString(location.getLongitude()));
                             editor.commit();
                         }
                     }
                 });
     }
 
-    public String changeToAddress(Context context, int nx, int ny){
+    // SharedPreferencse를 이용하여 디바이스에 Double형으로 저장하기 위해 별도로 만든 메소드
+//    SharedPreferences.Editor putDouble(final SharedPreferences.Editor edit, final String key, final double value) {
+//        return edit.putLong(key, Double.doubleToRawLongBits(value));
+//    }
+//    double getDouble(final SharedPreferences prefs, final String key, final double defaultValue) {
+//        if ( !prefs.contains(key))
+//            return defaultValue;
+//
+//        return Double.longBitsToDouble(prefs.getLong(key, 0));
+//    }
+
+    // 위도, 경도를 주소로 변환하는 메소드
+    public String changeToAddress(Context context, String lat, String lng){
         Geocoder geocoder = new Geocoder(context, Locale.KOREA);
         String nowAddress= null;
 
         SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
-        nx= pref.getInt("nx", nx);
-        ny= pref.getInt("ny", ny);
+        lat= pref.getString("nx", lat);
+        lng= pref.getString("ny", lng);
         if(geocoder!=null){
             try {
-                List<Address> address= geocoder.getFromLocation(nx,ny, 10);
+                List<Address> address= geocoder.getFromLocation(Double.parseDouble(lat), Double.parseDouble(lng), 10);
                 if (address != null && address.size()>0){
-                    String currentAddress= address.get(0).getAddressLine(0).toString();
+                    String currentAddress= address.get(0).getAdminArea()+" "+address.get(0).getLocality();
                     nowAddress = currentAddress;
                 }
             } catch (IOException e) {
@@ -210,8 +220,13 @@ public class MainActivity extends AppCompatActivity {
             String fcstTime = null;
 
             SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
-            nx= pref.getInt("nx", nx);
-            ny= pref.getInt("ny", ny);
+
+            nx= pref.getString("nx", nx);
+            ny= pref.getString( "ny", ny);
+
+            int lat= Math.round(Float.parseFloat(nx));
+            int lng= Math.round(Float.parseFloat(ny));
+
 
             long now= System.currentTimeMillis();
             Date date = new Date(now); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
@@ -232,8 +247,8 @@ public class MainActivity extends AppCompatActivity {
                     + "&dataType" + dataType // 응답자료형식(XML/JSON)
                     + "&base_date=" + getTime // 발표일자 (ex.20230227)
                     + "&base_time=" + baseTime // 발표시각 (ex.0500)
-                    + "&nx=" + nx // 예보지점 x좌표
-                    + "&ny=" + ny; // 예보지점 y좌표
+                    + "&nx=" + lat // 예보지점 x좌표
+                    + "&ny=" + lng; // 예보지점 y좌표
             Log.d("values", nx+","+ny);
 
             // 중기예보
