@@ -8,12 +8,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -32,23 +36,28 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 import kr.co.widgetweather.R;
-import kr.co.widgetweather.databinding.ActivityMainBinding;
 import kr.co.widgetweather.adapters.WeeklyWeatherRecyclerAdapter;
 import kr.co.widgetweather.model.WeeklyWeatherItem;
 
 public class MainActivity extends AppCompatActivity {
 
-    ActivityMainBinding binding;
-
     RecyclerView recycler;
     WeeklyWeatherRecyclerAdapter adapter;
     ArrayList<WeeklyWeatherItem> weekItems = new ArrayList<>();
 
+    int nx= 57; // 위도
+    int ny= 127; // 경도
+
     TextView loc;
     TextView tmp;
-    TextView weather;
+    TextView tvSky;
+    ImageView imgSky;
+    String tmpCurrent;
+    String skyCurrent;
 
     private FusedLocationProviderClient fusedLocationClient;
 
@@ -66,8 +75,39 @@ public class MainActivity extends AppCompatActivity {
         getLocation(); // 위치 가져오기
         MainThread thread = new MainThread(); // MainThread() 생성
         thread.start(); // xml 파싱시작
+        loadData(); // 디바이스에 저장된 데이터들 불러오기
+
+        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
+        nx= pref.getInt("nx", nx);
+        ny= pref.getInt("ny", ny);
+        changeToAddress(this, nx, ny);
 
     } // onCreate()
+
+    // 디바이스에 데이터 저장
+    void loadData(){
+
+        // 저장된 현재기온 데이터를 불러와서 TextView에 setText
+        SharedPreferences pref= getSharedPreferences("weather", MODE_PRIVATE);
+        tmpCurrent= pref.getString("tmp", tmpCurrent);
+        tmp= findViewById(R.id.tmp);
+        tmp.setText(tmpCurrent);
+
+        // 저장된 현재 하늘상태 데이터를 불러와서 TextView에 setText
+        skyCurrent= pref.getString("sky", skyCurrent);
+        tvSky= findViewById(R.id.tv_sky);
+        tvSky.setText(skyCurrent);
+
+        // 하늘상태에 따라 하늘상태 이미지 변경
+        imgSky= findViewById(R.id.img_sky);
+        if (skyCurrent.equals("맑음")){
+            imgSky.setImageResource(R.drawable.weather_sunny);
+        }else if (skyCurrent.equals("구름많음")){
+            imgSky.setImageResource(R.drawable.weather_cloudy);
+        }else if(skyCurrent.equals("흐림")){
+            imgSky.setImageResource(R.drawable.weather_blur);
+        }
+    }
 
     // 위치권한
     void permissionLocation() {
@@ -100,8 +140,9 @@ public class MainActivity extends AppCompatActivity {
                     public void onSuccess(Location location) {
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
-                            loc = findViewById(R.id.location);
-                            loc.setText((int) location.getLatitude() + "," + (int) location.getLongitude());
+
+                            //loc = findViewById(R.id.location);
+                            //loc.setText(changeToAddress(this, location.getLatitude(), location.getLongitude()));
 
                             SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
                             SharedPreferences.Editor editor = pref.edit();
@@ -113,6 +154,30 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    public String changeToAddress(Context context, int nx, int ny){
+        Geocoder geocoder = new Geocoder(context, Locale.KOREA);
+        String nowAddress= null;
+
+        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
+        nx= pref.getInt("nx", nx);
+        ny= pref.getInt("ny", ny);
+        if(geocoder!=null){
+            try {
+                List<Address> address= geocoder.getFromLocation(nx,ny, 10);
+                if (address != null && address.size()>0){
+                    String currentAddress= address.get(0).getAddressLine(0).toString();
+                    nowAddress = currentAddress;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "주소를 가져올 수 없습니다"+ e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+        loc= findViewById(R.id.location);
+        loc.setText(nowAddress);
+
+        return nowAddress;
+    }
 
     // XML 파싱
     class MainThread extends Thread {
@@ -132,13 +197,15 @@ public class MainActivity extends AppCompatActivity {
             String pageNo = "1";
             String dataType = "XML";
             String baseTime = "0500";
-            int nx= 57; // 위도
-            int ny= 127; // 경도
             String type= "";
+            String skyType= "";
             int itemNum= 0;
+            int weekItemNum= 0;
             int tmpResult= 0;
+            int tmpCur= 0;
             int sky= 0; // 하늘상태 ( 0~5 맑음, 6~8 구름많음, 9~10 흐림 )
             int changeDay= 0;
+            int skyFin=0;
             String fcstDate = null;
             String fcstTime = null;
 
@@ -147,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
             ny= pref.getInt("ny", ny);
 
             long now= System.currentTimeMillis();
-            Date date = new Date(now-(1000*60*60*5*1)); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
+            Date date = new Date(now); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
 
             SimpleDateFormat sdf= new SimpleDateFormat("yyyyMMdd");
             SimpleDateFormat sdfHour = new SimpleDateFormat("HH");
@@ -196,10 +263,7 @@ public class MainActivity extends AppCompatActivity {
 
                 int eventTypeDay= xpp.getEventType();
                 int eventTypeWeek= xppWeek.getEventType();
-                WeeklyWeatherItem weekItem= null;
-
-
-                // SKY : 하늘상태 ( 0~5 맑음, 6~8 구름많음, 9~10 흐림 )
+                WeeklyWeatherItem weekItem[]= {null,null,null,null,null};
 
                 while(eventTypeDay != XmlPullParser.END_DOCUMENT || eventTypeWeek != XmlPullParser.END_DOCUMENT){
 
@@ -215,16 +279,15 @@ public class MainActivity extends AppCompatActivity {
                             String tagName= xpp.getName();
 
                             if(tagName.equals("item")){
-                                weekItem= new WeeklyWeatherItem();
+                                weekItem[0]= new WeeklyWeatherItem();
                             }else if(tagName.equals("category")){
                                 xpp.next();
 
                                 if(xpp.getText().equals("TMP")){  // 카테고리 : TMP(기온)
                                     type = xpp.getText();
-                                    Log.d("day12",dayWeek(changeDay));
 
-//                                     tmp = findViewById(R.id.tmp);
-//                                    tmp.setText(xpp.getText()+"°");
+                                }else if (xpp.getText().equals("SKY")&& skyFin==0){ // 카테고리 : SKY(하늘상태 = 0~5 맑음, 6~8 구름많음, 9~10 흐림)
+                                    skyType = xpp.getText();
                                 }
 
                             }else if (tagName.equals("fcstDate") && type.equals("TMP") && itemNum==0){  // 날짜
@@ -247,11 +310,38 @@ public class MainActivity extends AppCompatActivity {
                             // 기온 값
                             }else if (tagName.equals("fcstValue") && type.equals("TMP") && fcstTime.equals(getHour+"00") && fcstDate.equals(getTime) && itemNum==2) {
                                 xpp.next();
-                                weekItem.tvWeek= dayWeek(changeDay); // 요일
-                                weekItem.tvTmpWeek = xpp.getText() + "°"; // 기온
+                                weekItem[0].tvWeek= dayWeek(changeDay); // 요일
+                                weekItem[0].tvTmpWeek = xpp.getText() + "°"; // 기온
                                 type = "";
                                 itemNum += 1;
-                                Log.d("itemNum", itemNum+"");
+
+                                // 현재기온 데이터를 디바이스에 따로 저장
+                                if (tmpCur == 0){
+                                    SharedPreferences tmpPref= getSharedPreferences("weather", MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = tmpPref.edit();
+                                    editor.putString("tmp", xpp.getText() + "°");
+                                    editor.commit();
+                                    tmpCur+=1;
+                                }
+
+                            // 하늘상태
+                            }else if (tagName.equals("fcstValue") && skyType.equals("SKY") && skyFin==0){
+                                xpp.next();
+                                int num= Integer.parseInt(xpp.getText());
+
+                                if (num >= 0 || num <= 5){
+                                    skyCurrent = "맑음";
+                                }else if (num >=6 || num <=8){
+                                    skyCurrent = "구름많음";
+                                }else if (num >= 9 || num <= 10){
+                                    skyCurrent = "흐림";
+                                }
+                                SharedPreferences skyPref= getSharedPreferences("weather", MODE_PRIVATE);
+                                SharedPreferences.Editor editor = skyPref.edit();
+                                editor.putString("sky", skyCurrent);
+                                editor.commit();
+                                Log.d("skyStat", skyCurrent);
+                                skyFin+=1;
                             }
                             break;
 
@@ -260,8 +350,7 @@ public class MainActivity extends AppCompatActivity {
 
                         case XmlPullParser.END_TAG:
                             if(xpp.getName().equals("item") && itemNum == 3){
-                                weekItems.add(weekItem);
-                                Log.d("items", itemNum+"");
+                                weekItems.add(weekItem[0]);
                                 itemNum=0;
                                 changeDay+=1;
 
@@ -290,48 +379,51 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                             case XmlPullParser.START_TAG:
                                 String tagName= xppWeek.getName();
-
-                                if(tagName.equals("item")){
-                                    weekItem= new WeeklyWeatherItem();
+                                if (tagName.equals("item")){
+                                    for (int i=1; i<=4 ; i++){
+                                        weekItem[i]= new WeeklyWeatherItem();
+                                    }
                                 }else if(tagName.equals("taMin3")){ // 3일 후 최저기온
                                     xppWeek.next();
-                                    Log.d("ss",dayWeek(changeDay)+"");
-                                    weekItem.tvWeek= dayWeek(changeDay); // 현재 요일
-                                    weekItem.tvTmpWeek = xppWeek.getText() + "°"; // 기온
-                                    weekItems.add(weekItem);
+
+                                    weekItem[1].tvWeek= dayWeek(changeDay); // 현재 요일
+                                    weekItem[1].tvTmpWeek = xppWeek.getText() + "°"; // 기온
+
+                                    weekItems.add(weekItem[1]);
                                     changeDay+=1;
-                                    Log.d("ss",dayWeek(changeDay)+"");
 
                                 }else if(tagName.equals("taMin4")){ // 4일 후 최저기온
                                     xppWeek.next();
-                                    weekItem.tvWeek= dayWeek(changeDay); // 현재 요일
-                                    weekItem.tvTmpWeek = xppWeek.getText() + "°"; // 기온
-                                    weekItems.add(weekItem);
+                                    weekItem[2].tvWeek= dayWeek(changeDay); // 현재 요일
+                                    weekItem[2].tvTmpWeek = xppWeek.getText() + "°"; // 기온
+
+                                    weekItems.add(weekItem[2]);
                                     changeDay+=1;
-                                    Log.d("ss",weekItems.size()+"");
 
                                 }else if(tagName.equals("taMin5")){ // 5일 후 최저기온
                                     xppWeek.next();
-                                    weekItem.tvWeek= dayWeek(changeDay); // 현재 요일
-                                    weekItem.tvTmpWeek = xppWeek.getText() + "°"; // 기온
-                                    weekItems.add(weekItem);
+                                    weekItem[3].tvWeek= dayWeek(changeDay); // 현재 요일
+                                    weekItem[3].tvTmpWeek = xppWeek.getText() + "°"; // 기온
+
+                                    weekItems.add(weekItem[3]);
                                     changeDay+=1;
 
                                 }else if(tagName.equals("taMin6")){ // 6일 후 최저기온
                                     xppWeek.next();
-                                    weekItem.tvWeek= dayWeek(changeDay); // 현재 요일
-                                    weekItem.tvTmpWeek = xppWeek.getText() + "°"; // 기온
-                                    weekItems.add(weekItem);
-                                    changeDay+=1;
+                                    weekItem[4].tvWeek= dayWeek(changeDay); // 현재 요일
+                                    weekItem[4].tvTmpWeek = xppWeek.getText() + "°"; // 기온
 
+                                    weekItems.add(weekItem[4]);
+                                    changeDay+=1;
                                 }
                                 break;
+
                             case XmlPullParser.TEXT:
                                 break;
 
                             case XmlPullParser.END_TAG:
                                 if(xppWeek.getName().equals("item")){
-                                    tmpResult+=1;
+                                    tmpResult+=1; // END_TAG가 item일 경우 break;
                                 }
                                 break;
                         } // switch
@@ -346,9 +438,6 @@ public class MainActivity extends AppCompatActivity {
             } catch (XmlPullParserException e) {
                 e.printStackTrace();
             }
-
-
-
         } // run()
     } // Thread()
 
@@ -364,45 +453,29 @@ public class MainActivity extends AppCompatActivity {
         String strWeek= "";
 
         switch(dayWeeks+i){
-            case 0:
-                strWeek = "토요일";
-                break;
-            case 1:
+
+            case 1: case 8: case 15:
                 strWeek = "일요일";
                 break;
-            case 2:
+            case 2: case 9: case 16:
                 strWeek = "월요일";
                 break;
-            case 3:
+            case 3: case 10: case 17:
                 strWeek = "화요일";
                 break;
-            case 4:
+            case 4: case 11: case 18:
                 strWeek = "수요일";
                 break;
-            case 5:
+            case 5: case 12: case 19:
                 strWeek = "목요일";
                 break;
-            case 6:
+            case 6: case 13: case 20:
                 strWeek = "금요일";
                 break;
-            case 7:
+            case 7: case 14: case 0:
                 strWeek = "토요일";
                 break;
-            case 8:
-                strWeek = "일요일";
-                break;
-            case 9:
-                strWeek = "월요일";
-                break;
-            case 10:
-                strWeek = "화요일";
-                break;
-            case 11:
-                strWeek = "수요일";
-                break;
-            case 12:
-                strWeek = "목요일";
-                break;
+
         }
         return strWeek;
     }

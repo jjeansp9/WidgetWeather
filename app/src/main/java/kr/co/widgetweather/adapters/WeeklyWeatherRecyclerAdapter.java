@@ -52,7 +52,6 @@ class VH extends RecyclerView.ViewHolder{
 
     TextView tv_week;
     TextView tv_tmx_week;
-    TextView tv_tmn_week;
 
     public VH(@NonNull View itemView) {
         super(itemView);
