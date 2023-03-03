@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         thread.start(); // xml 파싱시작
         loadData(); // 디바이스에 저장된 데이터들 불러오기
 
+        // 디바이스에 저장된 위도,경도 데이터값을 불러와서 changeToAddress()에 데이터 넘기기
         SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
         nx= pref.getString("nx", nx);
         ny= pref.getString("ny", ny);
@@ -100,7 +101,9 @@ public class MainActivity extends AppCompatActivity {
 
         // 하늘상태에 따라 하늘상태 이미지 변경
         imgSky= findViewById(R.id.img_sky);
-        if (skyCurrent.equals("맑음")){
+        if(skyCurrent == null){
+            imgSky.setImageResource(R.drawable.weather_sunny);
+        }else if (skyCurrent.equals("맑음")){
             imgSky.setImageResource(R.drawable.weather_sunny);
         }else if (skyCurrent.equals("구름많음")){
             imgSky.setImageResource(R.drawable.weather_cloudy);
@@ -117,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // Android Development 가이드 문서(사용자의 마지막 위치 가져오기)를 참조하여 작성하였습니다
     ActivityResultLauncher<String[]> locationPermissionRequest = registerForActivityResult(new ActivityResultContracts
             .RequestMultiplePermissions(), result -> {
         Boolean fineLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
@@ -144,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
                             SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
                             SharedPreferences.Editor editor = pref.edit();
 
+                            // 디바이스에 위도,경도 데이터 저장
                             editor.putString("nx", Double.toString(location.getLatitude()));
                             editor.putString("ny", Double.toString(location.getLongitude()));
                             editor.commit();
@@ -168,15 +173,22 @@ public class MainActivity extends AppCompatActivity {
         Geocoder geocoder = new Geocoder(context, Locale.KOREA);
         String nowAddress= null;
 
+        // 디바이스에 저장된 위도, 경도 데이터 가져오기
         SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
         lat= pref.getString("nx", lat);
         lng= pref.getString("ny", lng);
+
         if(geocoder!=null){
             try {
                 List<Address> address= geocoder.getFromLocation(Double.parseDouble(lat), Double.parseDouble(lng), 10);
                 if (address != null && address.size()>0){
-                    String currentAddress= address.get(0).getAdminArea()+" "+address.get(0).getLocality();
+                    String currentAddress= address.get(0).getAdminArea()+" "+address.get(0).getLocality(); // 주소 [ 시, 구 ] 불러오기
                     nowAddress = currentAddress;
+
+                    // 현재주소를 디바이스에 저장
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putString("address", nowAddress);
+                    editor.commit();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
