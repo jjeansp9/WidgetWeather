@@ -19,7 +19,6 @@ import android.widget.RemoteViews;
 public class WidgetProject extends AppWidgetProvider {
 
     private final String ACTION_BTN = "ButtonClick";
-    String address= "";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -31,15 +30,10 @@ public class WidgetProject extends AppWidgetProvider {
         remoteViews.setOnClickPendingIntent(R.id.previous, pendingIntent); // 왼쪽 화살표 클릭시 작동
         remoteViews.setOnClickPendingIntent(R.id.widget_weather_today, pendingIntent);
 
-        ComponentName componentName = new ComponentName(context, WidgetProject.class);
 
-        // 디바이스에 저장된 주소 데이터 가져온 후 view에 데이터값으로 텍스트 변경
-        SharedPreferences pref= context.getSharedPreferences("location", MODE_PRIVATE);
-        address= pref.getString("address", address);
-        remoteViews.setTextViewText(R.id.tv_loc, address+"11");
-        Log.d("address", address+"11");
+        updateAppWidget(context, appWidgetManager, appWidgetIds[0]);
 
-        appWidgetManager.updateAppWidget(componentName, remoteViews);
+
 
 
 
@@ -61,14 +55,42 @@ public class WidgetProject extends AppWidgetProvider {
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
             int appWidgetId) {
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_project);
 
-//        CharSequence widgetText = context.getString(R.string.appwidget_text);
-//        // Construct the RemoteViews object
-//        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_project);
-//        views.setTextViewText(R.id.appwidget_text, widgetText);
-//
-//        // Instruct the widget manager to update the widget
-//        appWidgetManager.updateAppWidget(appWidgetId, views);
+        String address="";
+        String tmpCurrent="";
+        String skyCurrent="";
+
+        // 디바이스에 저장된 주소 데이터를 가져온 후 view에 데이터값으로 텍스트 변경
+        SharedPreferences prefLoc= context.getSharedPreferences("location", MODE_PRIVATE);
+        address= prefLoc.getString("address", address);
+        views.setTextViewText(R.id.tv_loc, address);
+
+        // 디바이스에 저장된 온도 데이터 텍스트 변경
+        SharedPreferences prefWeather= context.getSharedPreferences("weather", MODE_PRIVATE);
+        tmpCurrent= prefWeather.getString("tmp", tmpCurrent);
+        views.setTextViewText(R.id.tv_tmp, tmpCurrent);
+
+        // 디바이스에 저장된 문자열에 따라 어울리는 이미지로 변경
+        skyCurrent= prefWeather.getString("sky", skyCurrent);
+        if(skyCurrent == ""){
+            views.setImageViewResource(R.id.img_sky, R.drawable.weather_sunny);
+        }else if (skyCurrent.equals("맑음")){
+            views.setImageViewResource(R.id.img_sky, R.drawable.weather_sunny);
+        }else if (skyCurrent.equals("구름많음")){
+            views.setImageViewResource(R.id.img_sky, R.drawable.weather_cloudy);
+        }else if(skyCurrent.equals("흐림")){
+            views.setImageViewResource(R.id.img_sky, R.drawable.weather_blur);
+        }
+
+        String tmpCurrents[]={"","","","","","",""};
+
+        for (int i=0; i<=6; i++){
+            tmpCurrents[i]= prefWeather.getString("tmp"+i, tmpCurrents[i]);
+            Log.d("test", tmpCurrents[i]+i);
+        }
+
+        appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
     @Override
@@ -81,11 +103,7 @@ public class WidgetProject extends AppWidgetProvider {
             RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
             ComponentName componentName = new ComponentName(context, WidgetProject.class);
 
-            // 디바이스에 저장된 주소 데이터 가져온 후 view에 데이터값으로 텍스트 변경
-            SharedPreferences pref= context.getSharedPreferences("location", MODE_PRIVATE);
-            address= pref.getString("address", address);
-            remoteViews.setTextViewText(R.id.tv_loc, address);
-            Log.d("address", address+"1");
+            SharedPreferences prefWeather= context.getSharedPreferences("weather", MODE_PRIVATE);
 
             appWidgetManager.updateAppWidget(componentName, remoteViews);
 

@@ -30,12 +30,13 @@
             android:src="@drawable/weather_sunny" />
 
         <TextView
+            android:id="@+id/tv_tmp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@id/img_sky"
             android:text="7°"
             android:textColor="@color/black"
-            android:textSize="40sp" />
+            android:textSize="30sp" />
 
         <RelativeLayout
             android:layout_width="wrap_content"

@@ -222,12 +222,10 @@ public class MainActivity extends AppCompatActivity {
             String type= "";
             String skyType= "";
             int itemNum= 0;
-            int weekItemNum= 0;
             int tmpResult= 0;
-            int tmpCur= 0;
-            int sky= 0; // 하늘상태 ( 0~5 맑음, 6~8 구름많음, 9~10 흐림 )
             int changeDay= 0;
             int skyFin=0;
+            int tmpNum=0;
             String fcstDate = null;
             String fcstTime = null;
 
@@ -292,6 +290,9 @@ public class MainActivity extends AppCompatActivity {
                 int eventTypeWeek= xppWeek.getEventType();
                 WeeklyWeatherItem weekItem[]= {null,null,null,null,null};
 
+                SharedPreferences tmpPref= getSharedPreferences("weather", MODE_PRIVATE);
+                SharedPreferences.Editor tmpEditor = tmpPref.edit();
+
                 while(eventTypeDay != XmlPullParser.END_DOCUMENT || eventTypeWeek != XmlPullParser.END_DOCUMENT){
 
                     // 단기예보 api
@@ -342,27 +343,27 @@ public class MainActivity extends AppCompatActivity {
                                 type = "";
                                 itemNum += 1;
 
-                                // 현재기온 데이터를 디바이스에 따로 저장
-                                if (tmpCur == 0){
-                                    SharedPreferences tmpPref= getSharedPreferences("weather", MODE_PRIVATE);
-                                    SharedPreferences.Editor editor = tmpPref.edit();
-                                    editor.putString("tmp", xpp.getText() + "°");
-                                    editor.commit();
-                                    tmpCur+=1;
-                                }
+                                tmpEditor.putString("tmp"+tmpNum, xpp.getText() + "°");
+                                tmpEditor.commit();
+                                tmpNum+=1;
 
                             // 하늘상태
                             }else if (tagName.equals("fcstValue") && skyType.equals("SKY") && skyFin==0){
                                 xpp.next();
-                                int num= Integer.parseInt(xpp.getText());
 
-                                if (num >= 0 || num <= 5){
+                                // api 문서에서 가져온 데이터 하늘상태 ( 0~5 맑음, 6~8 구름많음, 9~10 흐림 )
+                                int sky= Integer.parseInt(xpp.getText());
+
+                                // api문서에 명시된 하늘상태 데이터 값에 따라 하늘상태 문자열로 변환
+                                if (sky >= 0 || sky <= 5){
                                     skyCurrent = "맑음";
-                                }else if (num >=6 || num <=8){
+                                }else if (sky >=6 || sky <=8){
                                     skyCurrent = "구름많음";
-                                }else if (num >= 9 || num <= 10){
+                                }else if (sky >= 9 || sky <= 10){
                                     skyCurrent = "흐림";
                                 }
+
+                                // 문자열로 변환한 하늘상태 데이터를 디바이스에 저장
                                 SharedPreferences skyPref= getSharedPreferences("weather", MODE_PRIVATE);
                                 SharedPreferences.Editor editor = skyPref.edit();
                                 editor.putString("sky", skyCurrent);
@@ -415,6 +416,9 @@ public class MainActivity extends AppCompatActivity {
 
                                     weekItem[1].tvWeek= dayWeek(changeDay); // 현재 요일
                                     weekItem[1].tvTmpWeek = xppWeek.getText() + "°"; // 기온
+                                    tmpEditor.putString("tmp"+tmpNum, xpp.getText() + "°");
+                                    tmpEditor.commit();
+                                    tmpNum+=1;
 
                                     weekItems.add(weekItem[1]);
                                     changeDay+=1;
@@ -423,6 +427,9 @@ public class MainActivity extends AppCompatActivity {
                                     xppWeek.next();
                                     weekItem[2].tvWeek= dayWeek(changeDay); // 현재 요일
                                     weekItem[2].tvTmpWeek = xppWeek.getText() + "°"; // 기온
+                                    tmpEditor.putString("tmp"+tmpNum, xpp.getText() + "°");
+                                    tmpEditor.commit();
+                                    tmpNum+=1;
 
                                     weekItems.add(weekItem[2]);
                                     changeDay+=1;
@@ -431,6 +438,9 @@ public class MainActivity extends AppCompatActivity {
                                     xppWeek.next();
                                     weekItem[3].tvWeek= dayWeek(changeDay); // 현재 요일
                                     weekItem[3].tvTmpWeek = xppWeek.getText() + "°"; // 기온
+                                    tmpEditor.putString("tmp"+tmpNum, xpp.getText() + "°");
+                                    tmpEditor.commit();
+                                    tmpNum+=1;
 
                                     weekItems.add(weekItem[3]);
                                     changeDay+=1;
@@ -439,6 +449,9 @@ public class MainActivity extends AppCompatActivity {
                                     xppWeek.next();
                                     weekItem[4].tvWeek= dayWeek(changeDay); // 현재 요일
                                     weekItem[4].tvTmpWeek = xppWeek.getText() + "°"; // 기온
+                                    tmpEditor.putString("tmp"+tmpNum, xpp.getText() + "°");
+                                    tmpEditor.commit();
+                                    tmpNum+=1;
 
                                     weekItems.add(weekItem[4]);
                                     changeDay+=1;
