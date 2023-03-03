@@ -5,10 +5,12 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
@@ -43,7 +45,7 @@ import kr.co.widgetweather.R;
 import kr.co.widgetweather.adapters.WeeklyWeatherRecyclerAdapter;
 import kr.co.widgetweather.model.WeeklyWeatherItem;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener{
 
     RecyclerView recycler;
     WeeklyWeatherRecyclerAdapter adapter;
@@ -60,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     String skyCurrent;
 
     private FusedLocationProviderClient fusedLocationClient;
+    SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +86,41 @@ public class MainActivity extends AppCompatActivity {
         ny= pref.getString("ny", ny);
         changeToAddress(this, nx, ny);
 
+        swipeRefreshLayout = findViewById(R.id.refresh_layout);
+        swipeRefreshLayout.setOnRefreshListener(this);
+
+
     } // onCreate()
+
+    // 화면을 아래로 당기면 새로고침되는 메소드
+    public void updateDate(){
+        recycler = findViewById(R.id.recyler_weather_weekly);
+        recycler.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new WeeklyWeatherRecyclerAdapter(this, weekItems);
+        recycler.setAdapter(adapter);
+
+        permissionLocation(); // 위치 권한
+        getLocation(); // 위치 가져오기
+        MainThread thread = new MainThread(); // MainThread() 생성
+        thread.start(); // xml 파싱시작
+        loadData(); // 디바이스에 저장된 데이터들 불러오기
+
+        // 디바이스에 저장된 위도,경도 데이터값을 불러와서 changeToAddress()에 데이터 넘기기
+        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
+        nx= pref.getString("nx", nx);
+        ny= pref.getString("ny", ny);
+        changeToAddress(this, nx, ny);
+
+        swipeRefreshLayout = findViewById(R.id.refresh_layout);
+        swipeRefreshLayout.setOnRefreshListener(this);
+    }
+
+    // 새로고침을 하기 위한 메소드
+    @Override
+    public void onRefresh() {
+        updateDate();
+        swipeRefreshLayout.setRefreshing(false);
+    }
 
     // 디바이스에 데이터 저장
     void loadData(){
@@ -148,25 +185,18 @@ public class MainActivity extends AppCompatActivity {
                             SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
                             SharedPreferences.Editor editor = pref.edit();
 
-                            // 디바이스에 위도,경도 데이터 저장
+                            // 디바이스에 위도,경도 데이터 (Double -> String 변환) 저장
                             editor.putString("nx", Double.toString(location.getLatitude()));
                             editor.putString("ny", Double.toString(location.getLongitude()));
                             editor.commit();
+                            Log.d("location", location.getLatitude()+","+ location.getLongitude());
+                        }else{
+                            Log.d("locationError", "failed");
                         }
                     }
+
                 });
     }
-
-    // SharedPreferencse를 이용하여 디바이스에 Double형으로 저장하기 위해 별도로 만든 메소드
-//    SharedPreferences.Editor putDouble(final SharedPreferences.Editor edit, final String key, final double value) {
-//        return edit.putLong(key, Double.doubleToRawLongBits(value));
-//    }
-//    double getDouble(final SharedPreferences prefs, final String key, final double defaultValue) {
-//        if ( !prefs.contains(key))
-//            return defaultValue;
-//
-//        return Double.longBitsToDouble(prefs.getLong(key, 0));
-//    }
 
     // 위도, 경도를 주소로 변환하는 메소드
     public String changeToAddress(Context context, String lat, String lng){
@@ -177,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
         lat= pref.getString("nx", lat);
         lng= pref.getString("ny", lng);
+        Log.d("lat,lng", lat+lng);
 
         if(geocoder!=null){
             try {
@@ -189,6 +220,13 @@ public class MainActivity extends AppCompatActivity {
                     SharedPreferences.Editor editor = pref.edit();
                     editor.putString("address", nowAddress);
                     editor.commit();
+
+                    Log.d("address", nowAddress);
+
+                    // 현재주소에 따라 regId 예보구역코드 변환
+                    if(nowAddress.equals("서울")||nowAddress.equals("인천")||nowAddress.equals("경기")){
+
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -200,6 +238,8 @@ public class MainActivity extends AppCompatActivity {
 
         return nowAddress;
     }
+
+
 
     // XML 파싱
     class MainThread extends Thread {
@@ -226,6 +266,7 @@ public class MainActivity extends AppCompatActivity {
             int changeDay= 0;
             int skyFin=0;
             int tmpNum=0;
+            String regId = "";
             String fcstDate = null;
             String fcstTime = null;
 
@@ -259,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
                     + "&base_time=" + baseTime // 발표시각 (ex.0500)
                     + "&nx=" + lat // 예보지점 x좌표
                     + "&ny=" + lng; // 예보지점 y좌표
-            Log.d("values", nx+","+ny);
+            Log.d("values", lat+","+lng);
 
             // 중기예보
             String apiUrl2= "https://apis.data.go.kr/1360000/MidFcstInfoService/getMidTa?"
@@ -342,6 +383,7 @@ public class MainActivity extends AppCompatActivity {
                                 weekItem[0].tvTmpWeek = xpp.getText() + "°"; // 기온
                                 type = "";
                                 itemNum += 1;
+                                Log.d("tmpData", xpp.getText()+","+lat+","+lng);
 
                                 tmpEditor.putString("tmp"+tmpNum, xpp.getText() + "°");
                                 tmpEditor.commit();
@@ -368,7 +410,6 @@ public class MainActivity extends AppCompatActivity {
                                 SharedPreferences.Editor editor = skyPref.edit();
                                 editor.putString("sky", skyCurrent);
                                 editor.commit();
-                                Log.d("skyStat", skyCurrent);
                                 skyFin+=1;
                             }
                             break;
@@ -416,7 +457,8 @@ public class MainActivity extends AppCompatActivity {
 
                                     weekItem[1].tvWeek= dayWeek(changeDay); // 현재 요일
                                     weekItem[1].tvTmpWeek = xppWeek.getText() + "°"; // 기온
-                                    tmpEditor.putString("tmp"+tmpNum, xpp.getText() + "°");
+
+                                    tmpEditor.putString("tmp"+tmpNum, xppWeek.getText() + "°");
                                     tmpEditor.commit();
                                     tmpNum+=1;
 
@@ -427,7 +469,8 @@ public class MainActivity extends AppCompatActivity {
                                     xppWeek.next();
                                     weekItem[2].tvWeek= dayWeek(changeDay); // 현재 요일
                                     weekItem[2].tvTmpWeek = xppWeek.getText() + "°"; // 기온
-                                    tmpEditor.putString("tmp"+tmpNum, xpp.getText() + "°");
+
+                                    tmpEditor.putString("tmp"+tmpNum, xppWeek.getText() + "°");
                                     tmpEditor.commit();
                                     tmpNum+=1;
 
@@ -438,7 +481,8 @@ public class MainActivity extends AppCompatActivity {
                                     xppWeek.next();
                                     weekItem[3].tvWeek= dayWeek(changeDay); // 현재 요일
                                     weekItem[3].tvTmpWeek = xppWeek.getText() + "°"; // 기온
-                                    tmpEditor.putString("tmp"+tmpNum, xpp.getText() + "°");
+
+                                    tmpEditor.putString("tmp"+tmpNum, xppWeek.getText() + "°");
                                     tmpEditor.commit();
                                     tmpNum+=1;
 
@@ -449,7 +493,8 @@ public class MainActivity extends AppCompatActivity {
                                     xppWeek.next();
                                     weekItem[4].tvWeek= dayWeek(changeDay); // 현재 요일
                                     weekItem[4].tvTmpWeek = xppWeek.getText() + "°"; // 기온
-                                    tmpEditor.putString("tmp"+tmpNum, xpp.getText() + "°");
+
+                                    tmpEditor.putString("tmp"+tmpNum, xppWeek.getText() + "°");
                                     tmpEditor.commit();
                                     tmpNum+=1;
 

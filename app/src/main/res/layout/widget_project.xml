@@ -2,6 +2,7 @@
     style="@style/Widget.WidgetWeather.AppWidget.Container"
     android:theme="@style/Theme.WidgetWeather.AppWidgetContainer"
     android:layout_width="match_parent"
+    android:id="@+id/refresh_widget"
     android:layout_height="match_parent"
     android:backgroundTint="#2AFFFFFF">
 

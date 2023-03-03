@@ -1,7 +1,9 @@
 package kr.co.widgetweather;
 
+import static android.app.Activity.RESULT_OK;
 import static android.content.Context.MODE_PRIVATE;
 
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -10,48 +12,48 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
+
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 /**
  * Implementation of App Widget functionality.
  */
 public class WidgetProject extends AppWidgetProvider {
 
-    private final String ACTION_BTN = "ButtonClick";
+    private final String ACTION_BTN_LEFT = "ButtonClick";
+    private final String ACTION_BTN_RIGHT = "ButtonClick";
+    //private final String REFESH = "refresh";
+
+    //SwipeRefreshLayout swipeRefreshLayout;
+
+    int tmpIndex = 0;
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
 
-        Intent intent = new Intent(context, WidgetProject.class).setAction(ACTION_BTN);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,0, intent, 0);
+        Intent intentLeft = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_LEFT);
+        Intent intentRight = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_RIGHT);
+        //Intent refresh = new Intent(context, WidgetProject.class).setAction(REFESH);
 
-        remoteViews.setOnClickPendingIntent(R.id.previous, pendingIntent); // 왼쪽 화살표 클릭시 작동
-        remoteViews.setOnClickPendingIntent(R.id.widget_weather_today, pendingIntent);
+        PendingIntent pendingIntentLeft = PendingIntent.getBroadcast(context,0, intentLeft, 0);
+        PendingIntent pendingIntentRight = PendingIntent.getBroadcast(context,0, intentRight, 0);
+        //PendingIntent pendingIntentRefresh = PendingIntent.getBroadcast(context,0, refresh, 0);
 
+        remoteViews.setOnClickPendingIntent(R.id.previous, pendingIntentLeft); // 왼쪽 화살표 클릭시 작동
+        remoteViews.setOnClickPendingIntent(R.id.next, pendingIntentRight); // 오른쪽 화살표 클릭시 작동
+        //remoteViews.setOnClickPendingIntent(R.id.refresh_widget, pendingIntentRefresh); // 새로고침
 
         updateAppWidget(context, appWidgetManager, appWidgetIds[0]);
 
 
 
 
-
     }
 
-    @Override
-    public void onEnabled(Context context) {
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-        // Enter relevant functionality for when the first widget is created
-        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
-
-
-    }
-
-    @Override
-    public void onDisabled(Context context) {
-        // Enter relevant functionality for when the last widget is disabled
-    }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
             int appWidgetId) {
@@ -68,7 +70,7 @@ public class WidgetProject extends AppWidgetProvider {
 
         // 디바이스에 저장된 온도 데이터 텍스트 변경
         SharedPreferences prefWeather= context.getSharedPreferences("weather", MODE_PRIVATE);
-        tmpCurrent= prefWeather.getString("tmp", tmpCurrent);
+        tmpCurrent= prefWeather.getString("tmp"+0, tmpCurrent);
         views.setTextViewText(R.id.tv_tmp, tmpCurrent);
 
         // 디바이스에 저장된 문자열에 따라 어울리는 이미지로 변경
@@ -83,32 +85,37 @@ public class WidgetProject extends AppWidgetProvider {
             views.setImageViewResource(R.id.img_sky, R.drawable.weather_blur);
         }
 
-        String tmpCurrents[]={"","","","","","",""};
-
-        for (int i=0; i<=6; i++){
-            tmpCurrents[i]= prefWeather.getString("tmp"+i, tmpCurrents[i]);
-            Log.d("test", tmpCurrents[i]+i);
-        }
-
+        Log.d("testTmp", tmpCurrent);
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
+
         String action = intent.getAction();
-        if (action.equals(ACTION_BTN)){
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
+        ComponentName componentName = new ComponentName(context, WidgetProject.class);
 
-            RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
-            ComponentName componentName = new ComponentName(context, WidgetProject.class);
+        SharedPreferences prefWeather= context.getSharedPreferences("weather", MODE_PRIVATE);
 
-            SharedPreferences prefWeather= context.getSharedPreferences("weather", MODE_PRIVATE);
+        String tmp = null;
 
-            appWidgetManager.updateAppWidget(componentName, remoteViews);
-
-
-
+        if (action.equals(ACTION_BTN_LEFT) && tmpIndex > 0){ // 왼쪽 화살표 클릭시 동작
+            tmp= prefWeather.getString("tmp"+tmpIndex, tmp);
+            remoteViews.setTextViewText(R.id.tv_tmp, tmp);
+            Log.d("tmps", tmp);
+            tmpIndex+=1;
+        }else if (action.equals(ACTION_BTN_RIGHT) && tmpIndex < 7){ // 오른쪽 화살표 클릭시 동작
+            tmp= prefWeather.getString("tmp"+tmpIndex, tmp);
+            remoteViews.setTextViewText(R.id.tv_tmp, tmp);
+            Log.d("tmps", tmp);
+            tmpIndex-=1;
         }
+
+        appWidgetManager.updateAppWidget(componentName, remoteViews);
     }
+
+
 }
