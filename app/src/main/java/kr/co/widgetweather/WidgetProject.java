@@ -33,6 +33,7 @@ public class WidgetProject extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
 
         Intent intentLeft = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_LEFT);
@@ -47,9 +48,9 @@ public class WidgetProject extends AppWidgetProvider {
         remoteViews.setOnClickPendingIntent(R.id.next, pendingIntentRight); // 오른쪽 화살표 클릭시 작동
         //remoteViews.setOnClickPendingIntent(R.id.refresh_widget, pendingIntentRefresh); // 새로고침
 
+        appWidgetManager.updateAppWidget(appWidgetIds, remoteViews);
+
         updateAppWidget(context, appWidgetManager, appWidgetIds[0]);
-
-
 
 
     }
@@ -85,7 +86,6 @@ public class WidgetProject extends AppWidgetProvider {
             views.setImageViewResource(R.id.img_sky, R.drawable.weather_blur);
         }
 
-        Log.d("testTmp", tmpCurrent);
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
@@ -94,27 +94,40 @@ public class WidgetProject extends AppWidgetProvider {
         super.onReceive(context, intent);
 
         String action = intent.getAction();
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
-        ComponentName componentName = new ComponentName(context, WidgetProject.class);
 
-        SharedPreferences prefWeather= context.getSharedPreferences("weather", MODE_PRIVATE);
+        if (action.equals(ACTION_BTN_LEFT)){ // 왼쪽 화살표 클릭시 동작
 
-        String tmp = null;
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
+            ComponentName componentName = new ComponentName(context, WidgetProject.class);
 
-        if (action.equals(ACTION_BTN_LEFT) && tmpIndex > 0){ // 왼쪽 화살표 클릭시 동작
-            tmp= prefWeather.getString("tmp"+tmpIndex, tmp);
-            remoteViews.setTextViewText(R.id.tv_tmp, tmp);
-            Log.d("tmps", tmp);
-            tmpIndex+=1;
-        }else if (action.equals(ACTION_BTN_RIGHT) && tmpIndex < 7){ // 오른쪽 화살표 클릭시 동작
+            SharedPreferences prefWeather= context.getSharedPreferences("weather", MODE_PRIVATE);
+            String tmp = null;
+
             tmp= prefWeather.getString("tmp"+tmpIndex, tmp);
             remoteViews.setTextViewText(R.id.tv_tmp, tmp);
             Log.d("tmps", tmp);
             tmpIndex-=1;
+
+            appWidgetManager.updateAppWidget(componentName, remoteViews);
+
+        }else if (action.equals(ACTION_BTN_RIGHT)){ // 오른쪽 화살표 클릭시 동작
+
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
+            ComponentName componentName = new ComponentName(context, WidgetProject.class);
+
+            SharedPreferences prefWeather= context.getSharedPreferences("weather", MODE_PRIVATE);
+            String tmp = null;
+
+            tmp= prefWeather.getString("tmp"+tmpIndex, tmp);
+            remoteViews.setTextViewText(R.id.tv_tmp, tmp);
+            Log.d("tmps", tmp);
+            tmpIndex+=1;
+
+            appWidgetManager.updateAppWidget(componentName, remoteViews);
         }
 
-        appWidgetManager.updateAppWidget(componentName, remoteViews);
     }
 
 

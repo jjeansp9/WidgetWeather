@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     String nx= "57"; // 위도
     String ny= "127"; // 경도
+    String regId= "11B10101"; // 예보구역 코드
 
     TextView loc;
     TextView tmp;
@@ -76,17 +77,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         permissionLocation(); // 위치 권한
         getLocation(); // 위치 가져오기
-
-        // 디바이스에 저장된 위도,경도 데이터값을 불러와서 changeToAddress()에 데이터 넘기기
-        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
-        nx= pref.getString("nx", nx);
-        ny= pref.getString("ny", ny);
-        changeToAddress(this, nx, ny);
-
-        swipeRefreshLayout = findViewById(R.id.refresh_layout);
-        swipeRefreshLayout.setOnRefreshListener(this);
-
-
     } // onCreate()
 
     @Override
@@ -119,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         // 저장된 현재기온 데이터를 불러와서 TextView에 setText
         SharedPreferences pref= getSharedPreferences("weather", MODE_PRIVATE);
-        tmpCurrent= pref.getString("tmp", tmpCurrent);
+        tmpCurrent= pref.getString("tmp0", tmpCurrent);
         tmp= findViewById(R.id.tmp);
         tmp.setText(tmpCurrent);
 
@@ -208,6 +198,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     String currentAddress= address.get(0).getAdminArea()+" "+address.get(0).getLocality(); // 주소 [ 시, 구 ] 불러오기
                     nowAddress = currentAddress;
 
+                    String city= address.get(0).getLocality(); // 도시
+
                     // 현재주소를 디바이스에 저장
                     SharedPreferences.Editor editor = pref.edit();
                     editor.putString("address", nowAddress);
@@ -215,10 +207,20 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
                     Log.d("address", nowAddress);
 
-                    // 현재주소에 따라 regId 예보구역코드 변환
-//                    if(nowAddress.equals("서울")||nowAddress.equals("인천")||nowAddress.equals("경기")){
-//
-//                    }
+                    // 현재단말기 위치주소에 따라 regId 변수에 예보구역코드 변환 [ 변환된 예보구역코드 주소로 api문서 요청 ]
+                    if(city.equals("서울")||city.equals("서울특별시")){
+                        regId= "11B10101";
+                    }if(city.equals("용인")||city.equals("용인시")){
+                        regId= "11B20612";
+                    }if(city.equals("수원")||city.equals("수원시")){
+                        regId= "11B20601";
+                    }if(city.equals("안양")||city.equals("안양시")){
+                        regId= "11B20602";
+                    }if(city.equals("평택")||city.equals("평택시")){
+                        regId= "11B20606";
+                    }if(city.equals("성남")||city.equals("성남시")){
+                        regId= "11B20605";
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -299,7 +301,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     + "serviceKey=" + apiKey // api 키
                     + "&pageNo=" + pageNo // 페이지 번호
                     + "&numOfRows=" + "10" // 한 페이지 결과 수
-                    + "&regId=" + "11B10101" // 예보 지역코드
+                    + "&regId=" + regId // 예보 지역코드
                     + "&tmFc=" + getTime + "0600"; // 발표날짜+발표시간 (ex.202302270600)
 
             try {
