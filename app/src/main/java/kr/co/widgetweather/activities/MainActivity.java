@@ -260,7 +260,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             int changeDay= 0;
             int skyFin=0;
             int tmpNum=0;
-            String regId = "";
             String fcstDate = null;
             String fcstTime = null;
 
@@ -294,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     + "&base_time=" + baseTime // 발표시각 (ex.0500)
                     + "&nx=" + lat // 예보지점 x좌표
                     + "&ny=" + lng; // 예보지점 y좌표
-            Log.d("values", lat+","+lng);
+            Log.d("values", regId);
 
             // 중기예보
             String apiUrl2= "https://apis.data.go.kr/1360000/MidFcstInfoService/getMidTa?"
