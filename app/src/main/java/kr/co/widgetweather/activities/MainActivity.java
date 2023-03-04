@@ -76,9 +76,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         permissionLocation(); // 위치 권한
         getLocation(); // 위치 가져오기
-        MainThread thread = new MainThread(); // MainThread() 생성
-        thread.start(); // xml 파싱시작
-        loadData(); // 디바이스에 저장된 데이터들 불러오기
 
         // 디바이스에 저장된 위도,경도 데이터값을 불러와서 changeToAddress()에 데이터 넘기기
         SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
@@ -92,14 +89,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     } // onCreate()
 
-    // 화면을 아래로 당기면 새로고침되는 메소드
-    public void updateDate(){
-        recycler = findViewById(R.id.recyler_weather_weekly);
-        recycler.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new WeeklyWeatherRecyclerAdapter(this, weekItems);
-        recycler.setAdapter(adapter);
-
-        permissionLocation(); // 위치 권한
+    @Override
+    protected void onResume() {
+        super.onResume();
         getLocation(); // 위치 가져오기
         MainThread thread = new MainThread(); // MainThread() 생성
         thread.start(); // xml 파싱시작
@@ -118,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     // 새로고침을 하기 위한 메소드
     @Override
     public void onRefresh() {
-        updateDate();
+        onResume();
         swipeRefreshLayout.setRefreshing(false);
     }
 
@@ -224,9 +216,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     Log.d("address", nowAddress);
 
                     // 현재주소에 따라 regId 예보구역코드 변환
-                    if(nowAddress.equals("서울")||nowAddress.equals("인천")||nowAddress.equals("경기")){
-
-                    }
+//                    if(nowAddress.equals("서울")||nowAddress.equals("인천")||nowAddress.equals("경기")){
+//
+//                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
