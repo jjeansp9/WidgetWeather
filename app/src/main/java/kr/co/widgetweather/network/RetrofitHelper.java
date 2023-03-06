@@ -9,8 +9,8 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class RetrofitHelper {
 
-    // 중기기온조회 baseUrl
-    static final String BASE_URL = "http://apis.data.go.kr/1360000/MidFcstInfoService/";
+    // 단기기온조회 baseUrl
+    static final String BASE_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/";
 
     public static Retrofit getInstance(){
         Gson gson = new GsonBuilder().setLenient().create();
