@@ -2,34 +2,49 @@ package kr.co.widgetweather.activities;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 import kr.co.widgetweather.R;
 import kr.co.widgetweather.adapters.WeeklyWeatherRecyclerAdapter;
@@ -42,16 +57,16 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
-public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener{
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     RecyclerView recycler;
     WeeklyWeatherRecyclerAdapter adapter;
     ArrayList<WeeklyWeatherItem> weekItems = new ArrayList<>();
 
-    String nx= "57"; // 위도
-    String ny= "127"; // 경도
-    String regId1= "11B00000"; // 예보구역 코드
-    String regId2= "11B10101"; // 예보구역 코드
+    String nx = "57"; // 위도
+    String ny = "127"; // 경도
+    String regId1 = "11B00000"; // 예보구역 코드
+    String regId2 = "11B10101"; // 예보구역 코드
 
     TextView loc;
     TextView tmp;
@@ -61,6 +76,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     String skyCurrent;
 
     private FusedLocationProviderClient fusedLocationClient;
+    private LocationCallback locationCallback;
+
     SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
@@ -68,15 +85,18 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // 위치 권한
+        permissionLocation();
+
         recycler = findViewById(R.id.recyler_weather_weekly);
         recycler.setLayoutManager(new LinearLayoutManager(this));
         adapter = new WeeklyWeatherRecyclerAdapter(this, weekItems);
         recycler.setAdapter(adapter);
 
+        // 새로고침
         swipeRefreshLayout = findViewById(R.id.refresh_layout);
         swipeRefreshLayout.setOnRefreshListener(this);
 
-        permissionLocation(); // 위치 권한
         getLocation(); // 위치 가져오기
 
 
@@ -97,7 +117,13 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         nx= pref.getString("nx", nx);
         ny= pref.getString("ny", ny);
         //changeToAddress(this, nx, ny);
+
+
     }
+
+
+
+
 
     // 새로고침을 하기 위한 메소드
     @Override
@@ -156,84 +182,100 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     });
 
     // 마지막으로 알려진 위치 가져오기
-    @SuppressLint("MissingPermission")
     void getLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            return;
+        }
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
                         // Got last known location. In some rare situations this can be null.
+                        Log.d("location", location + "");
+
                         if (location != null) {
 
-                            SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
+                            SharedPreferences pref = getSharedPreferences("location", MODE_PRIVATE);
                             SharedPreferences.Editor editor = pref.edit();
-
+                            Log.d("LOCATIONSS", location.getLatitude() + "," + location.getLongitude());
                             // 디바이스에 위도,경도 데이터 (Double -> String 변환) 저장
                             editor.putString("nx", Double.toString(location.getLatitude()));
                             editor.putString("ny", Double.toString(location.getLongitude()));
                             editor.commit();
-                            Log.d("location", location.getLatitude()+","+ location.getLongitude());
-                        }else{
+                            Log.d("location", location.getLatitude() + "," + location.getLongitude());
+                        } else {
                             Log.d("locationError", "failed");
                         }
                     }
-
                 });
+        fusedLocationClient.getLastLocation().addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d("Errors", e.getMessage());
+            }
+        });
     }
 
     // 위도, 경도를 주소로 변환하는 메소드
-//    public String changeToAddress(Context context, String lat, String lng){
-//        Geocoder geocoder = new Geocoder(context, Locale.KOREA);
-//        String nowAddress= null;
-//
-//        // 디바이스에 저장된 위도, 경도 데이터 가져오기
-//        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
-//        lat= pref.getString("nx", lat);
-//        lng= pref.getString("ny", lng);
-//        Log.d("lat,lng", lat+lng);
-//
-//        if(geocoder!=null){
-//            try {
-//                List<Address> address= geocoder.getFromLocation(Double.parseDouble(lat), Double.parseDouble(lng), 10);
-//                if (address != null && address.size()>0){
-//                    String currentAddress= address.get(0).getAdminArea()+" "+address.get(0).getLocality(); // 주소 [ 시, 구 ] 불러오기
-//                    nowAddress = currentAddress;
-//
-//                    String city= address.get(0).getLocality(); // 도시
-//
-//                    // 현재주소를 디바이스에 저장
-//                    SharedPreferences.Editor editor = pref.edit();
-//                    editor.putString("address", nowAddress);
-//                    editor.commit();
-//
-//                    Log.d("address", nowAddress);
-//
-//                    // 현재단말기 위치주소에 따라 regId 변수에 예보구역코드 변환 [ 변환된 예보구역코드 주소로 api문서 요청 ]
-//                    if(city.equals("서울")||city.equals("서울특별시")){
-//                        regId= "11B10101";
-//                    }if(city.equals("용인")||city.equals("용인시")){
-//                        regId= "11B20612";
-//                    }if(city.equals("수원")||city.equals("수원시")){
-//                        regId= "11B20601";
-//                    }if(city.equals("안양")||city.equals("안양시")){
-//                        regId= "11B20602";
-//                    }if(city.equals("평택")||city.equals("평택시")){
-//                        regId= "11B20606";
-//                    }if(city.equals("성남")||city.equals("성남시")){
-//                        regId= "11B20605";
-//                    }
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//                Toast.makeText(this, "주소를 가져올 수 없습니다"+ e.getMessage(), Toast.LENGTH_SHORT).show();
-//            }
-//        }
-//        loc= findViewById(R.id.location);
-//        loc.setText(nowAddress);
-//
-//        return nowAddress;
-//    }
+    public String changeToAddress(Context context, String lat, String lng){
+        Geocoder geocoder = new Geocoder(context, Locale.KOREA);
+        String nowAddress= null;
+
+        // 디바이스에 저장된 위도, 경도 데이터 가져오기
+        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
+        lat= pref.getString("nx", lat);
+        lng= pref.getString("ny", lng);
+        Log.d("lat,lng", lat+lng);
+
+        if(geocoder!=null){
+            try {
+                List<Address> address= geocoder.getFromLocation(Double.parseDouble(lat), Double.parseDouble(lng), 10);
+                if (address != null && address.size()>0){
+                    String currentAddress= address.get(0).getAdminArea()+" "+address.get(0).getLocality(); // 주소 [ 시, 구 ] 불러오기
+                    nowAddress = currentAddress;
+
+                    String city= address.get(0).getLocality(); // 도시
+
+                    // 현재주소를 디바이스에 저장
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putString("address", nowAddress);
+                    editor.commit();
+
+                    Log.d("address", nowAddress);
+
+                    // 현재단말기 위치주소에 따라 regId 변수에 예보구역코드 변환 [ 변환된 예보구역코드 주소로 api문서 요청 ]
+                    if(city.equals("서울")||city.equals("서울특별시")){
+                        regId2= "11B10101";
+                        regId1= "11B00000";
+                    }if(city.equals("용인")||city.equals("용인시")){
+                        regId2= "11B20612";
+                        regId1= "11B00000";
+                    }if(city.equals("수원")||city.equals("수원시")){
+                        regId2= "11B20601";
+                        regId1= "11B00000";
+                    }if(city.equals("안양")||city.equals("안양시")){
+                        regId2= "11B20602";
+                        regId1= "11B00000";
+                    }if(city.equals("평택")||city.equals("평택시")){
+                        regId2= "11B20606";
+                        regId1= "11B00000";
+                    }if(city.equals("성남")||city.equals("성남시")){
+                        regId2= "11B20605";
+                        regId1= "11B00000";
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "주소를 가져올 수 없습니다"+ e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+        loc= findViewById(R.id.location);
+        loc.setText(nowAddress);
+
+        return nowAddress;
+    }
 
     // Json 파싱
     void retrofitParsing(){
@@ -248,8 +290,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         String hour= sdfHour.format(today)+"00";
 
         String getTime= "0500";
+        String getTime2= "0600";
 
-        // 발표시각과 현재시각이 같은경우 현재시간으로 요청항목에 발표시각 변경 (1일 8회)
+        // [ 중기육상예보 ] : 발표시각과 현재시각이 같은경우 현재시간으로 요청항목에 발표시각 변경 (1일 8회)
         if (hour.equals("0200")){
             getTime= hour;
         }else if(hour.equals("0500")){
@@ -268,13 +311,19 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             getTime= hour;
         }
 
-        String getTime2= "0600";
-
+        // [ 중기기온예보 ] : 발표시각과 현재시각이 같은경우 현재시간으로 요청항목에 발표시각 변경 (1일 2회)
         if (hour.equals("0600")){
             getTime2= hour;
         }else if (hour.equals("1800")){
             getTime2= hour;
         }
+
+        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
+        nx= pref.getString("nx", nx);
+        ny= pref.getString( "ny", ny);
+
+        int lat= Math.round(Float.parseFloat(nx));
+        int lng= Math.round(Float.parseFloat(ny));
 
         // 단기 기온조회 baseUrl
         String baseUrl = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/";
@@ -284,10 +333,15 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         String dataType= "json";
         String baseDate= getDate; // 현재 날짜를 가져온 데이터
         String baseTime= getTime; // 1일동안 8회 변경
-        String nx= "57"; // 위도
-        String ny= "127"; // 경도
+        String nx= lat+""; // 위도
+        String ny= lng+""; // 경도
         String tmFc= getDate+getTime2;
         Log.d("DATETEST", tmFc);
+
+        WeeklyWeatherItem shortItems[]= {null,null,null,null,null,null,null};
+        for (int i= 0; i< shortItems.length; i++){
+            shortItems[i]= new WeeklyWeatherItem();
+        }
 
         Retrofit retrofit= RetrofitHelper.getInstance(baseUrl);
         RetrofitService retrofitService= retrofit.create(RetrofitService.class);
@@ -297,11 +351,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
-
-                WeeklyWeatherItem shortItems[]= {null,null,null};
-                for (int i= 0; i< shortItems.length; i++){
-                    shortItems[i]= new WeeklyWeatherItem();
-                }
 
                 try{
                     // 오늘부터 4일후 까지의 날짜데이터를 배열형태로 반복문을 통해 가져오기
@@ -425,7 +474,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                     Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
                                     changeDays[2]+= 1; // 날짜변경
 
-                                    // 얻어온 하늘상태 데이터 값에 따라 각각 다른 이미지 넣기
+                                    // 얻어온 하늘상태 데이터 값에 따라 문자열 넣기
                                     if (fcstValue.equals("1")){
                                         Log.d("WEATHERQ", "맑음");
                                         shortItems[j].imgSky= "맑음";
@@ -451,35 +500,30 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                             if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
                                 Log.d("trueREH", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
                                 changeDays[3]+= 1; // 날짜변경
-
-                            }
-                            for (int s= 1; s<= 2; s++){
-
-                                if (fcstDate.equals(days[s]) && hour.equals(fcstTime)){
-                                    Log.d("trueREH", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[3]));
-                                    changeDays[3]+= 1;
-                                }
+                                TextView tvReh;
+                                tvReh= findViewById(R.id.tv_reh);
+                                tvReh.setText(fcstValue+"%");
                             }
                         } // if REH 습도
 
                     } // for
-
-
+                    weekItems.clear();
+                    for (int i=0; i<= 2; i++){
+                        weekItems.add(shortItems[i]);
+                        Log.d("weekItems", weekItems.size()+"");
+                        Log.d("weekitems", shortItems[i].tvTmpWeek);
+                        Log.d("weekitems", shortItems[i].tvWeek);
+                        Log.d("weekitems", shortItems[i].imgSky);
+                        Log.d("weekitems", shortItems[i].tvPop);
+                    }
+                    adapter.notifyDataSetChanged();
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
-                weekItems.clear();
-                for (int i=0; i<= 2; i++){
-                    weekItems.add(shortItems[i]);
-                    Log.d("weekItems", weekItems.size()+"");
-                    Log.d("weekitems", shortItems[i].tvTmpWeek);
-                    Log.d("weekitems", shortItems[i].tvWeek);
-                    Log.d("weekitems", shortItems[i].imgSky);
-                    Log.d("weekitems", shortItems[i].tvPop);
-                }
-                adapter.notifyDataSetChanged();
+
+
             }
 
             @Override
@@ -487,6 +531,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                 Log.v("TAG", t.getMessage());
             }
         }); // 단기기온 callback
+
 
 
 
@@ -521,6 +566,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
                         for (int j=3; j<=6; j++){
 
+
                             // 3,4,5,6일 후 오전,오후 강수확률
                             rnStAm[index]= obj.getString("rnSt"+j+"Am");
                             rnStPm[index]= obj.getString("rnSt"+j+"Pm");
@@ -530,10 +576,15 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                             wfPm[index]= obj.getString("wf"+j+"Pm");
                             Log.d("rnData", rnStAm[index]+","+rnStPm[index]+ ", index : "+ index + " j :" + j);
                             Log.d("wfData", wfAm[index]+","+wfPm[index]+ ", index : "+ index + " j :" + j);
+                            shortItems[j].tvWeek= dayWeek(index+3);
+                            shortItems[j].tvPop= rnStPm[index]+"%";
+                            shortItems[j].imgSky= wfPm[index];
                             index+=1;
                         } // for
 
                     } // for
+
+
 
 
                 } catch (JSONException e) {
@@ -571,15 +622,20 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                 // 3,4,5,6일 후 최고기온
                                 for (int j=3; j<=6; j++){
                                     taMax[index]= obj.getString("taMax"+j);
+                                    shortItems[j].tvTmpWeek= taMax[index];
+                                    weekItems.add(shortItems[j]);
                                     Log.d("SSSS", taMax[index]);
                                     index+=1;
                                 } // for
 
                             } // for
-
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+
+
+
+
 
                     }
 
@@ -594,10 +650,10 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             public void onFailure(Call<String> call, Throwable t) {
 
             }
-        });
+        }); // call2 [ 중기기온 ]
+        adapter.notifyDataSetChanged();
 
-
-    }
+    } // retrofitParsing()
 
 
     // XML 파싱

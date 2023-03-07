@@ -81,17 +81,18 @@
                             android:textColor="@color/black"
                             android:textSize="20sp"
                             android:textStyle="bold"/>
+
                         <TextView
                             android:id="@+id/tv_reh"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_below="@id/layout"
-                            android:layout_toRightOf="@id/view"
                             android:layout_marginLeft="4dp"
+                            android:layout_toRightOf="@id/view"
                             android:text="20%"
                             android:textColor="@color/black"
                             android:textSize="20sp"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold" />
                     </RelativeLayout>
 
                     <!--        하늘상태 이미지, 하늘상태        -->
