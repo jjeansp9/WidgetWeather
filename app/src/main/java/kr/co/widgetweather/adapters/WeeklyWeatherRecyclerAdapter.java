@@ -42,7 +42,7 @@ public class WeeklyWeatherRecyclerAdapter extends RecyclerView.Adapter<VH> {
     public void onBindViewHolder(@NonNull VH holder, int position) {
         holder.tv_week.setText(items.get(position).tvWeek); // 요일
         holder.tv_pop.setText(items.get(position).tvPop); // 강수확률 텍스트
-        Glide.with(context).load(items.get(position).imgSky).error(R.drawable.weather_sunny).into(holder.img_sky); // 하늘상태 이미지
+        holder.img_sky.setText(items.get(position).imgSky); // 하늘상태
         holder.tv_tmx_week.setText(items.get(position).tvTmpWeek); // 1시간 온도
 
     }
@@ -58,7 +58,7 @@ class VH extends RecyclerView.ViewHolder{
     TextView tv_week;
     TextView tv_pop;
     TextView tv_tmx_week;
-    ImageView img_sky;
+    TextView img_sky;
 
 
     public VH(@NonNull View itemView) {

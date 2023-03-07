@@ -33,6 +33,18 @@ public interface RetrofitService {
             @Query("regId") String regId,
             @Query("tmFc") String tmFc
     );
+
+    @GET("getMidTa?serviceKey=CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D")
+    Call<String> getJson3(
+            @Query("pageNo") String pageNo,
+            @Query("numOfRows") String numOfRows,
+            @Query("dataType") String dataType,
+            @Query("regId") String regId,
+            @Query("tmFc") String tmFc
+    );
+
+
+
 }
 
 

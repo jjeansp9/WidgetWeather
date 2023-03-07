@@ -50,7 +50,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     String nx= "57"; // 위도
     String ny= "127"; // 경도
-    String regId= "11B10101"; // 예보구역 코드
+    String regId1= "11B00000"; // 예보구역 코드
+    String regId2= "11B10101"; // 예보구역 코드
 
     TextView loc;
     TextView tmp;
@@ -72,8 +73,13 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         adapter = new WeeklyWeatherRecyclerAdapter(this, weekItems);
         recycler.setAdapter(adapter);
 
+        swipeRefreshLayout = findViewById(R.id.refresh_layout);
+        swipeRefreshLayout.setOnRefreshListener(this);
+
         permissionLocation(); // 위치 권한
         getLocation(); // 위치 가져오기
+
+
     } // onCreate()
 
     @Override
@@ -91,9 +97,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         nx= pref.getString("nx", nx);
         ny= pref.getString("ny", ny);
         //changeToAddress(this, nx, ny);
-
-        swipeRefreshLayout = findViewById(R.id.refresh_layout);
-        swipeRefreshLayout.setOnRefreshListener(this);
     }
 
     // 새로고침을 하기 위한 메소드
@@ -265,15 +268,26 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             getTime= hour;
         }
 
+        String getTime2= "0600";
+
+        if (hour.equals("0600")){
+            getTime2= hour;
+        }else if (hour.equals("1800")){
+            getTime2= hour;
+        }
+
         // 단기 기온조회 baseUrl
         String baseUrl = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/";
         String pageNo= "10";
         String numOfRows= "1500";
+        String numOfRows2= "1";
         String dataType= "json";
         String baseDate= getDate; // 현재 날짜를 가져온 데이터
         String baseTime= getTime; // 1일동안 8회 변경
         String nx= "57"; // 위도
         String ny= "127"; // 경도
+        String tmFc= getDate+getTime2;
+        Log.d("DATETEST", tmFc);
 
         Retrofit retrofit= RetrofitHelper.getInstance(baseUrl);
         RetrofitService retrofitService= retrofit.create(RetrofitService.class);
@@ -283,6 +297,11 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
+
+                WeeklyWeatherItem shortItems[]= {null,null,null};
+                for (int i= 0; i< shortItems.length; i++){
+                    shortItems[i]= new WeeklyWeatherItem();
+                }
 
                 try{
                     // 오늘부터 4일후 까지의 날짜데이터를 배열형태로 반복문을 통해 가져오기
@@ -313,15 +332,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 //                    VVV : 풍속(남북성분)
 //                    UUU : 풍속(동서성분)
 //                    TMP : 1시간 기온
-                    String sky;
-                    String pop;
-                    String reh;
-                    String tmx;
-
-                    WeeklyWeatherItem shortItems[]= {null,null,null};
-                    for (int i= 0; i< shortItems.length; i++){
-                        shortItems[i]= new WeeklyWeatherItem();
-                    }
 
                     // json 문자열을 json 객체로 변환
                     JSONObject jsonObject= new JSONObject(response.body());
@@ -346,7 +356,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                             // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
                             if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
                                 Log.d("trueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
-                                shortItems[0].tvTmpWeek= fcstValue;
+                                shortItems[0].tvTmpWeek= fcstValue+"°";
                                 Log.d("testData", shortItems[0].tvTmpWeek+","+ fcstValue);
                                 shortItems[0].tvWeek= "오늘";
                                 changeDays[0]+= 1; // 날짜변경
@@ -355,7 +365,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                             for (int a=1; a<=2; a++){
                                 if (fcstDate.equals(days[a]) && hour.equals(fcstTime)){
                                     Log.d("trueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[0]));
-                                    shortItems[a].tvTmpWeek= fcstValue;
+                                    shortItems[a].tvTmpWeek= fcstValue+"°";
                                     shortItems[a].tvWeek= dayWeek(changeDays[0]);
                                     changeDays[0]+= 1;
                                 }
@@ -372,14 +382,14 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                             // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
                             if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
                                 Log.d("truePOP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
-                                shortItems[0].tvPop= fcstValue;
+                                shortItems[0].tvPop= fcstValue+"%";
                                 changeDays[1]+= 1; // 날짜변경
                             }
                             for (int k=1; k<=2; k++){
                                 if (fcstDate.equals(days[k]) && hour.equals(fcstTime)){
                                     Log.d("truePOP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[1]));
                                     changeDays[1]+= 1;
-                                    shortItems[k].tvPop= fcstValue;
+                                    shortItems[k].tvPop= fcstValue+"%";
                                 }
                             }
                         } // if POP 강수확률
@@ -398,15 +408,15 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                 changeDays[2]+= 1; // 날짜변경
                                 if (fcstValue.equals("1")){
                                     Log.d("WEATHERQ", "맑음");
-                                    shortItems[0].imgSky= "https://cdn-icons-png.flaticon.com/512/4005/4005793.png";
+                                    shortItems[0].imgSky= "맑음";
 
                                 }else if (fcstValue.equals("3")){
                                     Log.d("WEATHERQ", "구름많음");
-                                    shortItems[0].imgSky= "https://cdn-icons-png.flaticon.com/512/1163/1163726.png";
+                                    shortItems[0].imgSky= "구름많음";
 
                                 }else if (fcstValue.equals("4")){
                                     Log.d("WEATHERQ", "흐림");
-                                    shortItems[0].imgSky="https://cdn-icons-png.flaticon.com/512/7284/7284299.png";
+                                    shortItems[0].imgSky="흐림";
                                 }
                             }
                             for (int j= 1; j<= 2; j++){
@@ -418,13 +428,13 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                     // 얻어온 하늘상태 데이터 값에 따라 각각 다른 이미지 넣기
                                     if (fcstValue.equals("1")){
                                         Log.d("WEATHERQ", "맑음");
-                                        shortItems[j].imgSky= "https://cdn-icons-png.flaticon.com/512/4005/4005793.png";
+                                        shortItems[j].imgSky= "맑음";
                                     }else if (fcstValue.equals("3")){
                                         Log.d("WEATHERQ", "구름많음");
-                                        shortItems[j].imgSky= "https://cdn-icons-png.flaticon.com/512/1163/1163726.png";
+                                        shortItems[j].imgSky= "구름많음";
                                     }else if (fcstValue.equals("4")){
                                         Log.d("WEATHERQ", "흐림");
-                                        shortItems[j].imgSky="https://cdn-icons-png.flaticon.com/512/7284/7284299.png";
+                                        shortItems[j].imgSky="흐림";
                                     }
                                 }
                             }
@@ -454,15 +464,22 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
                     } // for
 
-                    for (int i=0; i<= 2; i++){
-                        weekItems.add(shortItems[i]);
-                        Log.d("weekItems", weekItems.size()+"");
-                        Log.d("weekitems", shortItems[i].tvTmpWeek);
-                    }
+
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
+                weekItems.clear();
+                for (int i=0; i<= 2; i++){
+                    weekItems.add(shortItems[i]);
+                    Log.d("weekItems", weekItems.size()+"");
+                    Log.d("weekitems", shortItems[i].tvTmpWeek);
+                    Log.d("weekitems", shortItems[i].tvWeek);
+                    Log.d("weekitems", shortItems[i].imgSky);
+                    Log.d("weekitems", shortItems[i].tvPop);
+                }
+                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -471,20 +488,107 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             }
         }); // 단기기온 callback
 
-        // 중기 기온조회 base Url
+
+
+        // 중기 육상예보조회 base Url
         String baseUrl2 = "http://apis.data.go.kr/1360000/MidFcstInfoService/";
 
         // 중기기온 json 파싱작업
         Retrofit retrofit2= RetrofitHelper.getInstance(baseUrl2);
-        RetrofitService retrofitService2= retrofit.create(RetrofitService.class);
+        RetrofitService retrofitService2= retrofit2.create(RetrofitService.class);
 
         // URL 요청항목 값들을 getJson() 메소드에 대입
-        Call<String> call2= retrofitService.getJson(pageNo, numOfRows, dataType, baseDate, baseTime, nx, ny);
+        Call<String> call2= retrofitService2.getJson2(pageNo, numOfRows2, dataType, regId1, tmFc);
         call2.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
-                Log.d("TAGSAPI", response.body());
-            }
+                String[] rnStAm= {"","","",""};
+                String[] rnStPm= {"","","",""};
+                String[] wfAm= {"","","",""};
+                String[] wfPm= {"","","",""};
+
+                try {
+                    JSONObject jsonObject= new JSONObject(response.body());
+                    JSONObject res= jsonObject.getJSONObject("response");
+                    JSONObject body= res.getJSONObject("body");
+                    JSONObject items= body.getJSONObject("items");
+                    JSONArray item= items.getJSONArray("item");
+
+                    for (int i=0; i<item.length();i++){
+                        JSONObject obj= item.getJSONObject(i);
+
+                        int index= 0;
+
+                        for (int j=3; j<=6; j++){
+
+                            // 3,4,5,6일 후 오전,오후 강수확률
+                            rnStAm[index]= obj.getString("rnSt"+j+"Am");
+                            rnStPm[index]= obj.getString("rnSt"+j+"Pm");
+
+                            // 3,4,5,6일 후 오전,오후 하늘상태
+                            wfAm[index]= obj.getString("wf"+j+"Am");
+                            wfPm[index]= obj.getString("wf"+j+"Pm");
+                            Log.d("rnData", rnStAm[index]+","+rnStPm[index]+ ", index : "+ index + " j :" + j);
+                            Log.d("wfData", wfAm[index]+","+wfPm[index]+ ", index : "+ index + " j :" + j);
+                            index+=1;
+                        } // for
+
+                    } // for
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }// catch
+
+                // 중기 기온조회 base Url
+                String baseUrl3 = "http://apis.data.go.kr/1360000/MidFcstInfoService/";
+
+                // 중기기온 json 파싱작업
+                Retrofit retrofit3= RetrofitHelper.getInstance(baseUrl3);
+                RetrofitService retrofitService3= retrofit3.create(RetrofitService.class);
+
+                // URL 요청항목 값들을 getJson() 메소드에 대입
+                Call<String> call3= retrofitService3.getJson3(pageNo, numOfRows2, dataType, regId2, tmFc);
+                call3.enqueue(new Callback<String>() {
+                    @Override
+                    public void onResponse(Call<String> call, Response<String> response) {
+
+                        String[] taMax= {"","","",""};
+
+                        try {
+                            JSONObject jsonObject = new JSONObject(response.body());
+                            JSONObject res= jsonObject.getJSONObject("response");
+                            JSONObject body= res.getJSONObject("body");
+                            JSONObject items= body.getJSONObject("items");
+                            JSONArray item= items.getJSONArray("item");
+
+                            for (int i=0; i<item.length();i++){
+                                JSONObject obj= item.getJSONObject(i);
+
+
+                                int index= 0;
+
+                                // 3,4,5,6일 후 최고기온
+                                for (int j=3; j<=6; j++){
+                                    taMax[index]= obj.getString("taMax"+j);
+                                    Log.d("SSSS", taMax[index]);
+                                    index+=1;
+                                } // for
+
+                            } // for
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<String> call, Throwable t) {
+
+                    }
+                });
+            } // onResponse
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
