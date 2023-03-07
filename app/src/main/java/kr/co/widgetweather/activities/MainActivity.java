@@ -244,45 +244,81 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     void retrofitParsing(){
 
         long now= System.currentTimeMillis();
-        Date date = new Date(now); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
+        Date today = new Date(now); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*1))
 
         SimpleDateFormat sdf= new SimpleDateFormat("yyyyMMdd");
         SimpleDateFormat sdfHour = new SimpleDateFormat("HH");
 
-        String pageNo= "1";
-        String numOfRows= "100";
+        String getDate= sdf.format(today);
+        String hour= sdfHour.format(today)+"00";
+
+        String getTime= "0500";
+
+        // 발표시각과 현재시각이 같은경우 현재시간으로 요청항목에 발표시각 변경 (1일 8회)
+        if (hour.equals("0200")){
+            getTime= hour;
+        }else if(hour.equals("0500")){
+            getTime= hour;
+        }else if(hour.equals("0800")){
+            getTime= hour;
+        }else if(hour.equals("1100")){
+            getTime= hour;
+        }else if(hour.equals("1400")){
+            getTime= hour;
+        }else if(hour.equals("1700")){
+            getTime= hour;
+        }else if(hour.equals("2000")){
+            getTime= hour;
+        }else if(hour.equals("2300")){
+            getTime= hour;
+        }
+
+        String pageNo= "10";
+        String numOfRows= "1500";
         String dataType= "json";
-        String baseDate= sdf.format(date);
-        String baseTime= "0500";
-        String nx= "57";
-        String ny= "127";
-
-        String result= "";
-
-        Log.d("time", baseDate);
+        String baseDate= getDate; // 현재 날짜를 가져온 데이터
+        String baseTime= getTime; // 1일동안 8회 변경
+        String nx= "57"; // 위도
+        String ny= "127"; // 경도
 
         Retrofit retrofit= RetrofitHelper.getInstance();
         RetrofitService retrofitService= retrofit.create(RetrofitService.class);
 
+        // URL 요청항목 값들을 getJson() 메소드에 대입
         Call<String> call= retrofitService.getJson(pageNo, numOfRows, dataType, baseDate, baseTime, nx, ny);
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
 
                 try{
+                    // 오늘부터 4일후 까지의 날짜데이터를 배열형태로 반복문을 통해 가져오기
+                    String[] days= {"","",""};
+                    for (int i=0; i<days.length; i++){
+                        Date date= new Date(now+(1000*60*60*24*i));
+                        days[i]= sdf.format(date);
+                        Log.d("days", days[i]+"["+i+"]");
+                    }
 
-                    int elementSNO= 1; // 1시간 신적설
-                    int elementREH= 2; // 습도
-                    int elementPCP= 3; // 1시간 강수량
-                    int elementWAV= 4; // 파고
-                    int elementPOP= 5; // 강수확률
-                    int elementPTY= 6; // 강수형태
-                    int elementSKY= 7; // 하늘상태
-                    int elementWSD= 8; // 풍속
-                    int elementVEC= 9; // 풍향
-                    int elementVVV= 10; // 풍속(남북성분)
-                    int elementUUU= 11; // 풍속(동서성분)
-                    int elementTMP= 12; // 1시간 기온
+                    Date date = new Date(now+(1000*60*60*2)); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*1))
+                    Date dateYesterday = new Date(now+(1000*60*60*24*(-1)));
+
+                    String yesterday= sdf.format(dateYesterday); // 어제날짜
+                    String hour= sdfHour.format(date)+"00"; // 2시간 후
+
+                    int[] changeDays= {0,0,0};
+
+//                    SNO : 1시간 신적설
+//                    REH : 습도
+//                    PCP : 1시간 강수량
+//                    WAV : 파고
+//                    POP : 강수확률
+//                    PTY : 강수형태
+//                    SKY : 하늘상태
+//                    WSD : 풍속
+//                    VEC : 풍향
+//                    VVV : 풍속(남북성분)
+//                    UUU : 풍속(동서성분)
+//                    TMP : 1시간 기온
 
                     // json 문자열을 json 객체로 변환
                     JSONObject jsonObject= new JSONObject(response.body());
@@ -292,26 +328,104 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     JSONObject items= body.getJSONObject("items");
                     JSONArray item= items.getJSONArray("item");
 
+                    // json 문서의 item 객체를 모두 가져올 때 까지 반복
                     for (int i=0; i< item.length(); i++){
                         JSONObject obj= item.getJSONObject(i);
-                        String fcstValue= obj.getString("fcstValue");
+                        String category= obj.getString("category");
 
+                        // 1시간 기온
+                        if (category.equals("TMP")){
+                            String fcstValue= obj.getString("fcstValue");
+                            String fcstDate= obj.getString("fcstDate");
+                            String fcstTime= obj.getString("fcstTime");
+                            Log.d("valueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime);
 
-                        if (elementREH%12 == 0 || elementREH == 0){
+                            // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
+                            if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
+                                Log.d("trueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
+                                changeDays[0]+= 1; // 날짜변경
 
-                            Log.d("fcstValue", fcstValue+ obj);
+                            }else if (fcstDate.equals(days[1]) && hour.equals(fcstTime)){
+                                Log.d("trueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[0]));
+                                changeDays[0]+= 1;
 
-                        }
-                        elementREH+=1;
+                            }else if (fcstDate.equals(days[2]) && hour.equals(fcstTime)){
+                                Log.d("trueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[0]));
+                                changeDays[0]+= 1;
 
-                    }
+                            }
+                        } // if TMP 1시간 기온
 
+                        // 강수확률
+                        if (category.equals("POP")){
+                            String fcstValue= obj.getString("fcstValue");
+                            String fcstDate= obj.getString("fcstDate");
+                            String fcstTime= obj.getString("fcstTime");
+                            Log.d("valuePOP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime);
 
+                            // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
+                            if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
+                                Log.d("truePOP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
+                                changeDays[1]+= 1; // 날짜변경
 
+                            }else if (fcstDate.equals(days[1]) && hour.equals(fcstTime)){
+                                Log.d("truePOP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[1]));
+                                changeDays[1]+= 1;
 
+                            }else if (fcstDate.equals(days[2]) && hour.equals(fcstTime)){
+                                Log.d("truePOP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[1]));
+                                changeDays[1]+= 1;
 
+                            }
+                        } // if POP 강수확률
 
+                        // 하늘상태 [ 맑음 1, 구름많음 3, 흐림 4 ]
+                        if (category.equals("SKY")){
+                            String fcstValue= obj.getString("fcstValue");
+                            String fcstDate= obj.getString("fcstDate");
+                            String fcstTime= obj.getString("fcstTime");
+                            Log.d("valueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime);
 
+                            // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
+                            if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
+                                Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
+                                changeDays[2]+= 1; // 날짜변경
+
+                            }else if (fcstDate.equals(days[1]) && hour.equals(fcstTime)){
+                                Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
+                                changeDays[2]+= 1;
+
+                            }else if (fcstDate.equals(days[2]) && hour.equals(fcstTime)){
+                                Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
+                                changeDays[2]+= 1;
+
+                            }
+                        } // if SKY 하늘상태
+
+                        // 습도
+                        if (category.equals("REH")){
+                            String fcstValue= obj.getString("fcstValue");
+                            String fcstDate= obj.getString("fcstDate");
+                            String fcstTime= obj.getString("fcstTime");
+                            Log.d("valueREH", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime);
+
+                            // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
+                            if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
+                                Log.d("trueREH", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
+                                changeDays[2]+= 1; // 날짜변경
+
+                            }else if (fcstDate.equals(days[1]) && hour.equals(fcstTime)){
+                                Log.d("trueREH", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
+                                changeDays[2]+= 1;
+
+                            }else if (fcstDate.equals(days[2]) && hour.equals(fcstTime)){
+                                Log.d("trueREH", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
+                                changeDays[2]+= 1;
+
+                            }
+                        } // if REH 습도
+
+                    } // for
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
