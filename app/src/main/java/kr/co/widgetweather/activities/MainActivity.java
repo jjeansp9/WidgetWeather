@@ -71,9 +71,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         recycler.setLayoutManager(new LinearLayoutManager(this));
         adapter = new WeeklyWeatherRecyclerAdapter(this, weekItems);
         recycler.setAdapter(adapter);
-        weekItems.add(new WeeklyWeatherItem("dd", R.drawable.water_drop_01, "10%", R.drawable.weather_blur, "14도"));
-        weekItems.add(new WeeklyWeatherItem("ss", R.drawable.water_drop_02, "10%", R.drawable.weather_sunny, "14도"));
-        weekItems.add(new WeeklyWeatherItem("dd", R.drawable.water_drop_01, "10%", R.drawable.weather_cloudy, "14도"));
 
         permissionLocation(); // 위치 권한
         getLocation(); // 위치 가져오기
@@ -86,15 +83,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         //MainThread thread = new MainThread(); // MainThread() 생성
         //thread.start(); // xml 파싱시작
 
-        retrofitParsing();
-
-//        try {
-//            jsonParsing(); // json 파싱
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
+        retrofitParsing(); // json 파싱한 데이터 불러오기
         loadData(); // 디바이스에 저장된 데이터들 불러오기
 
         // 디바이스에 저장된 위도,경도 데이터값을 불러와서 changeToAddress()에 데이터 넘기기
@@ -276,6 +265,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             getTime= hour;
         }
 
+        // 단기 기온조회 baseUrl
+        String baseUrl = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/";
         String pageNo= "10";
         String numOfRows= "1500";
         String dataType= "json";
@@ -284,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         String nx= "57"; // 위도
         String ny= "127"; // 경도
 
-        Retrofit retrofit= RetrofitHelper.getInstance();
+        Retrofit retrofit= RetrofitHelper.getInstance(baseUrl);
         RetrofitService retrofitService= retrofit.create(RetrofitService.class);
 
         // URL 요청항목 값들을 getJson() 메소드에 대입
@@ -308,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     String yesterday= sdf.format(dateYesterday); // 어제날짜
                     String hour= sdfHour.format(date)+"00"; // 2시간 후
 
-                    int[] changeDays= {0,0,0};
+                    int[] changeDays= {0,0,0,0};
 
 //                    SNO : 1시간 신적설
 //                    REH : 습도
@@ -322,6 +313,15 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 //                    VVV : 풍속(남북성분)
 //                    UUU : 풍속(동서성분)
 //                    TMP : 1시간 기온
+                    String sky;
+                    String pop;
+                    String reh;
+                    String tmx;
+
+                    WeeklyWeatherItem shortItems[]= {null,null,null};
+                    for (int i= 0; i< shortItems.length; i++){
+                        shortItems[i]= new WeeklyWeatherItem();
+                    }
 
                     // json 문자열을 json 객체로 변환
                     JSONObject jsonObject= new JSONObject(response.body());
@@ -331,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     JSONObject items= body.getJSONObject("items");
                     JSONArray item= items.getJSONArray("item");
 
-                    // json 문서의 item 객체를 모두 가져올 때 까지 반복
+                    // json 문서의 item 객체를 모두 가져올 때 까지 반복 [ 파싱할 데이터 : 1.기온(TMP), 2.강수확률(POP), 3.하늘상태(SKY), 4.습도(REH) ]
                     for (int i=0; i< item.length(); i++){
                         JSONObject obj= item.getJSONObject(i);
                         String category= obj.getString("category");
@@ -346,16 +346,19 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                             // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
                             if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
                                 Log.d("trueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
+                                shortItems[0].tvTmpWeek= fcstValue;
+                                Log.d("testData", shortItems[0].tvTmpWeek+","+ fcstValue);
+                                shortItems[0].tvWeek= "오늘";
                                 changeDays[0]+= 1; // 날짜변경
+                            }
 
-                            }else if (fcstDate.equals(days[1]) && hour.equals(fcstTime)){
-                                Log.d("trueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[0]));
-                                changeDays[0]+= 1;
-
-                            }else if (fcstDate.equals(days[2]) && hour.equals(fcstTime)){
-                                Log.d("trueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[0]));
-                                changeDays[0]+= 1;
-
+                            for (int a=1; a<=2; a++){
+                                if (fcstDate.equals(days[a]) && hour.equals(fcstTime)){
+                                    Log.d("trueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[0]));
+                                    shortItems[a].tvTmpWeek= fcstValue;
+                                    shortItems[a].tvWeek= dayWeek(changeDays[0]);
+                                    changeDays[0]+= 1;
+                                }
                             }
                         } // if TMP 1시간 기온
 
@@ -369,16 +372,15 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                             // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
                             if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
                                 Log.d("truePOP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
+                                shortItems[0].tvPop= fcstValue;
                                 changeDays[1]+= 1; // 날짜변경
-
-                            }else if (fcstDate.equals(days[1]) && hour.equals(fcstTime)){
-                                Log.d("truePOP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[1]));
-                                changeDays[1]+= 1;
-
-                            }else if (fcstDate.equals(days[2]) && hour.equals(fcstTime)){
-                                Log.d("truePOP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[1]));
-                                changeDays[1]+= 1;
-
+                            }
+                            for (int k=1; k<=2; k++){
+                                if (fcstDate.equals(days[k]) && hour.equals(fcstTime)){
+                                    Log.d("truePOP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[1]));
+                                    changeDays[1]+= 1;
+                                    shortItems[k].tvPop= fcstValue;
+                                }
                             }
                         } // if POP 강수확률
 
@@ -390,18 +392,41 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                             Log.d("valueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime);
 
                             // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
+
                             if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
                                 Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
                                 changeDays[2]+= 1; // 날짜변경
+                                if (fcstValue.equals("1")){
+                                    Log.d("WEATHERQ", "맑음");
+                                    shortItems[0].imgSky= "https://cdn-icons-png.flaticon.com/512/4005/4005793.png";
 
-                            }else if (fcstDate.equals(days[1]) && hour.equals(fcstTime)){
-                                Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
-                                changeDays[2]+= 1;
+                                }else if (fcstValue.equals("3")){
+                                    Log.d("WEATHERQ", "구름많음");
+                                    shortItems[0].imgSky= "https://cdn-icons-png.flaticon.com/512/1163/1163726.png";
 
-                            }else if (fcstDate.equals(days[2]) && hour.equals(fcstTime)){
-                                Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
-                                changeDays[2]+= 1;
+                                }else if (fcstValue.equals("4")){
+                                    Log.d("WEATHERQ", "흐림");
+                                    shortItems[0].imgSky="https://cdn-icons-png.flaticon.com/512/7284/7284299.png";
+                                }
+                            }
+                            for (int j= 1; j<= 2; j++){
 
+                                if (fcstDate.equals(days[j]) && hour.equals(fcstTime)) {
+                                    Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
+                                    changeDays[2]+= 1; // 날짜변경
+
+                                    // 얻어온 하늘상태 데이터 값에 따라 각각 다른 이미지 넣기
+                                    if (fcstValue.equals("1")){
+                                        Log.d("WEATHERQ", "맑음");
+                                        shortItems[j].imgSky= "https://cdn-icons-png.flaticon.com/512/4005/4005793.png";
+                                    }else if (fcstValue.equals("3")){
+                                        Log.d("WEATHERQ", "구름많음");
+                                        shortItems[j].imgSky= "https://cdn-icons-png.flaticon.com/512/1163/1163726.png";
+                                    }else if (fcstValue.equals("4")){
+                                        Log.d("WEATHERQ", "흐림");
+                                        shortItems[j].imgSky="https://cdn-icons-png.flaticon.com/512/7284/7284299.png";
+                                    }
+                                }
                             }
                         } // if SKY 하늘상태
 
@@ -415,20 +440,25 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                             // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
                             if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
                                 Log.d("trueREH", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
-                                changeDays[2]+= 1; // 날짜변경
+                                changeDays[3]+= 1; // 날짜변경
 
-                            }else if (fcstDate.equals(days[1]) && hour.equals(fcstTime)){
-                                Log.d("trueREH", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
-                                changeDays[2]+= 1;
+                            }
+                            for (int s= 1; s<= 2; s++){
 
-                            }else if (fcstDate.equals(days[2]) && hour.equals(fcstTime)){
-                                Log.d("trueREH", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
-                                changeDays[2]+= 1;
-
+                                if (fcstDate.equals(days[s]) && hour.equals(fcstTime)){
+                                    Log.d("trueREH", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[3]));
+                                    changeDays[3]+= 1;
+                                }
                             }
                         } // if REH 습도
 
                     } // for
+
+                    for (int i=0; i<= 2; i++){
+                        weekItems.add(shortItems[i]);
+                        Log.d("weekItems", weekItems.size()+"");
+                        Log.d("weekitems", shortItems[i].tvTmpWeek);
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -439,7 +469,30 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             public void onFailure(Call<String> call, Throwable t) {
                 Log.v("TAG", t.getMessage());
             }
+        }); // 단기기온 callback
+
+        // 중기 기온조회 base Url
+        String baseUrl2 = "http://apis.data.go.kr/1360000/MidFcstInfoService/";
+
+        // 중기기온 json 파싱작업
+        Retrofit retrofit2= RetrofitHelper.getInstance(baseUrl2);
+        RetrofitService retrofitService2= retrofit.create(RetrofitService.class);
+
+        // URL 요청항목 값들을 getJson() 메소드에 대입
+        Call<String> call2= retrofitService.getJson(pageNo, numOfRows, dataType, baseDate, baseTime, nx, ny);
+        call2.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                Log.d("TAGSAPI", response.body());
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+
+            }
         });
+
+
     }
 
 
