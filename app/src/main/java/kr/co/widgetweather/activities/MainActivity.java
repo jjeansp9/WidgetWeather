@@ -71,6 +71,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         recycler.setLayoutManager(new LinearLayoutManager(this));
         adapter = new WeeklyWeatherRecyclerAdapter(this, weekItems);
         recycler.setAdapter(adapter);
+        weekItems.add(new WeeklyWeatherItem("dd", R.drawable.water_drop_01, "10%", R.drawable.weather_blur, "14도"));
+        weekItems.add(new WeeklyWeatherItem("ss", R.drawable.water_drop_02, "10%", R.drawable.weather_sunny, "14도"));
+        weekItems.add(new WeeklyWeatherItem("dd", R.drawable.water_drop_01, "10%", R.drawable.weather_cloudy, "14도"));
 
         permissionLocation(); // 위치 권한
         getLocation(); // 위치 가져오기

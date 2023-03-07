@@ -8,45 +8,51 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true">
+
         <TextView
             android:id="@+id/week"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="70dp"
             android:text="요일"
-            android:textSize="22sp"/>
+            android:textSize="22sp" />
 
-        <!--  하늘상태 이미지  -->
-<!--        <ImageView-->
-<!--            android:id="@+id/weather_week"-->
-<!--            android:layout_width="30dp"-->
-<!--            android:layout_height="30dp"-->
-<!--            android:layout_centerVertical="true"-->
-<!--            android:layout_marginLeft="50dp"-->
-<!--            android:layout_marginRight="20dp"-->
-<!--            android:src="@drawable/weather_sunny" />-->
-
-        <!--  기온  -->
-
+        <!--    강수확률    -->
+        <ImageView
+            android:id="@+id/img_pop"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="140dp"
+            android:src="@drawable/water_drop_01"/>
         <TextView
+            android:id="@+id/tv_pop"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="22sp"
-            android:layout_marginLeft="50dp"
-            android:layout_marginRight="10dp"
-            android:text="기온 : "/>
+            android:text="30%"
+            android:textSize="22sp" />
 
+        <!--  하늘상태 이미지  -->
+        <ImageView
+            android:id="@+id/img_sky"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/weather_sunny" />
+
+        <TextView
+            android:id="@+id/tmp_week"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:text="14°"
+            android:textSize="22sp" />
 
     </LinearLayout>
-    <TextView
-        android:id="@+id/tmp_week"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="14°"
-        android:textSize="22sp"
-        android:layout_marginRight="70dp"
-        android:layout_alignParentRight="true"/>
+
 
 
 </RelativeLayout>
