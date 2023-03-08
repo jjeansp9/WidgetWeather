@@ -355,7 +355,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         String tmFc= getDate+getTime2;
         Log.d("DATETEST", tmFc);
 
-        WeeklyWeatherItem shortItems[]= {null,null,null,null,null,null,null};
+        WeeklyWeatherItem shortItems[]= {null,null,null,null,null,null,null,null};
         for (int i= 0; i< shortItems.length; i++){
             shortItems[i]= new WeeklyWeatherItem();
         }
@@ -507,38 +507,94 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
                             // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
 
-                            if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
+                            if (fcstDate.equals(days[0]) && fcstTime.equals("0900") || fcstDate.equals(yesterday)) { // 오늘 날짜
+                                Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
+
+                                if (fcstValue.equals("1")){
+                                    Log.d("WEATHERQ", "맑음");
+                                    shortItems[0].imgSkyMax= R.drawable.weather_sunny;
+
+                                }else if (fcstValue.equals("3")){
+                                    Log.d("WEATHERQ", "구름많음");
+                                    shortItems[0].imgSkyMax= R.drawable.weather_cloudy;
+
+                                }else if (fcstValue.equals("4")){
+                                    Log.d("WEATHERQ", "흐림");
+                                    shortItems[0].imgSkyMax= R.drawable.weather_blur;
+                                }
+                            }
+                            if (fcstDate.equals(days[0]) && fcstTime.equals("1800") || fcstDate.equals(yesterday)){
                                 Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
                                 changeDays[3]+= 1; // 날짜변경
                                 if (fcstValue.equals("1")){
                                     Log.d("WEATHERQ", "맑음");
-                                    shortItems[0].imgSky= "맑음";
+                                    shortItems[0].imgSkyMin= R.drawable.weather_sunny;
 
                                 }else if (fcstValue.equals("3")){
                                     Log.d("WEATHERQ", "구름많음");
-                                    shortItems[0].imgSky= "구름많음";
+                                    shortItems[0].imgSkyMin= R.drawable.weather_cloudy;
 
                                 }else if (fcstValue.equals("4")){
                                     Log.d("WEATHERQ", "흐림");
-                                    shortItems[0].imgSky="흐림";
+                                    shortItems[0].imgSkyMin= R.drawable.weather_blur;
                                 }
                             }
                             for (int j= 1; j<= 2; j++){
 
-                                if (fcstDate.equals(days[j]) && hour.equals(fcstTime)) {
-                                    Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
+                                // 오전 하늘상태
+                                if (fcstDate.equals(days[j]) && fcstTime.equals("0900")) {
+                                    Log.d("trueSKYS", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
+
+                                    // 얻어온 하늘상태 데이터 값에 따라 문자열 넣기
+                                    if (fcstValue.equals("1")){
+                                        Log.d("WEATHERQ", "맑음");
+                                        shortItems[j].imgSkyMax= R.drawable.weather_sunny;
+
+                                    }else if (fcstValue.equals("3")){
+                                        Log.d("WEATHERQ", "구름많음");
+                                        shortItems[j].imgSkyMax= R.drawable.weather_cloudy;
+
+                                    }else if (fcstValue.equals("4")){
+                                        Log.d("WEATHERQ", "흐림");
+                                        shortItems[j].imgSkyMax=R.drawable.weather_blur;
+
+                                    }
+                                }
+
+                                // 오후 하늘상태
+                                if (fcstDate.equals(days[j]) && fcstTime.equals("1800")) {
+                                    Log.d("trueSKYS", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
                                     changeDays[3]+= 1; // 날짜변경
 
                                     // 얻어온 하늘상태 데이터 값에 따라 문자열 넣기
                                     if (fcstValue.equals("1")){
                                         Log.d("WEATHERQ", "맑음");
-                                        shortItems[j].imgSky= "맑음";
+                                        shortItems[j].imgSkyMin= R.drawable.weather_sunny;
+
                                     }else if (fcstValue.equals("3")){
                                         Log.d("WEATHERQ", "구름많음");
-                                        shortItems[j].imgSky= "구름많음";
+                                        shortItems[j].imgSkyMin= R.drawable.weather_cloudy;
+
                                     }else if (fcstValue.equals("4")){
                                         Log.d("WEATHERQ", "흐림");
-                                        shortItems[j].imgSky="흐림";
+                                        shortItems[j].imgSkyMin=R.drawable.weather_blur;
+                                    }
+                                }
+
+                                // 현재 하늘상태에 따라 이미지 변경
+                                if(fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)){
+                                    // 얻어온 하늘상태 데이터 값에 따라 문자열 넣기
+                                    if (fcstValue.equals("1")){
+                                        imgSky.setImageResource(R.drawable.weather_sunny);
+                                        tvSky.setText("맑음");
+
+                                    }else if (fcstValue.equals("3")){
+                                        imgSky.setImageResource(R.drawable.weather_cloudy);
+                                        tvSky.setText("구름많음");
+
+                                    }else if (fcstValue.equals("4")){
+                                        imgSky.setImageResource(R.drawable.weather_blur);
+                                        tvSky.setText("흐림");
                                     }
                                 }
                             }
@@ -618,7 +674,62 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                         Log.d("wfData", wfAm[index]+","+wfPm[index]+ ", index : "+ index + " j :" + j);
                                         shortItems[j].tvWeek= dayWeek(index+3);
                                         shortItems[j].tvPop= rnStPm[index]+"%";
-                                        shortItems[j].imgSky= wfPm[index];
+                                        shortItems[j].imgSkyMax= R.drawable.weather_rain;
+
+                                        // 오전 하늘상태
+                                        if (wfAm[index].equals("맑음")){
+                                            Log.d("WEATHERQ", "맑음");
+                                            shortItems[j].imgSkyMin= R.drawable.weather_sunny;
+
+                                        }else if (wfAm[index].equals("구름많음")){
+                                            Log.d("WEATHERQ", "구름많음");
+                                            shortItems[j].imgSkyMin= R.drawable.weather_cloudy;
+
+                                        }else if (wfAm[index].equals("구름많고 비")
+                                                ||wfAm[index].equals("구름많고 비/눈")
+                                                ||wfAm[index].equals("구름많고 소나기")
+                                                ||wfAm[index].equals("흐리고 비")
+                                                ||wfAm[index].equals("흐리고 소나기")
+                                                ||wfAm[index].equals("흐리고 비/눈")){
+                                            Log.d("WEATHERQ", "구름많고 비");
+                                            shortItems[j].imgSkyMin=R.drawable.weather_rain;
+
+                                        }else if (wfAm[index].equals("구름많고 눈")||wfAm[index].equals("흐리고 눈")){
+                                            Log.d("WEATHERQ", "흐림");
+                                            shortItems[j].imgSkyMin=R.drawable.weather_rain;
+
+                                        }else if (wfAm[index].equals("흐림")){
+                                            Log.d("WEATHERQ", "흐림");
+                                            shortItems[j].imgSkyMin=R.drawable.weather_blur;
+
+                                        }
+
+                                        // 오후 하늘상태
+                                        if (wfPm[index].equals("맑음")){
+                                            Log.d("WEATHERQ", "맑음");
+                                            shortItems[j].imgSkyMax= R.drawable.weather_sunny;
+
+                                        }else if (wfPm[index].equals("구름많음")){
+                                            Log.d("WEATHERQ", "구름많음");
+                                            shortItems[j].imgSkyMax= R.drawable.weather_cloudy;
+
+                                        }else if (wfPm[index].equals("구름많고 비")
+                                                ||wfPm[index].equals("구름많고 비/눈")
+                                                ||wfPm[index].equals("구름많고 소나기")
+                                                ||wfPm[index].equals("흐리고 비")
+                                                ||wfPm[index].equals("흐리고 소나기")
+                                                ||wfPm[index].equals("흐리고 비/눈")){
+                                            Log.d("WEATHERQ", "구름많고 비");
+                                            shortItems[j].imgSkyMax=R.drawable.weather_rain;
+
+                                        }else if (wfPm[index].equals("구름많고 눈")||wfPm[index].equals("흐리고 눈")){
+                                            Log.d("WEATHERQ", "흐림");
+                                            shortItems[j].imgSkyMax=R.drawable.weather_rain;
+
+                                        }else if (wfPm[index].equals("흐림")){
+                                            Log.d("WEATHERQ", "흐림");
+                                            shortItems[j].imgSkyMax=R.drawable.weather_blur;
+                                        }
                                         index+=1;
                                     } // for
 
@@ -676,6 +787,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                                 Log.d("SIZE", weekItems.size()+"");
                                             }
                                             adapter.notifyDataSetChanged();
+
+                                            // 데이터를 모두 불러오면 프로그래스바 종료
                                             loadData=1;
                                             if (loadData == 1){
                                                 dialog.dismiss();

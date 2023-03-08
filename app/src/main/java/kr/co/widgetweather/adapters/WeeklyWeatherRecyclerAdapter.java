@@ -42,7 +42,9 @@ public class WeeklyWeatherRecyclerAdapter extends RecyclerView.Adapter<VH> {
     public void onBindViewHolder(@NonNull VH holder, int position) {
         holder.tv_week.setText(items.get(position).tvWeek); // 요일
         holder.tv_pop.setText(items.get(position).tvPop); // 강수확률 텍스트
-        holder.img_sky.setText(items.get(position).imgSky); // 하늘상태
+//        holder.img_sky.setText(items.get(position).imgSky); // 하늘상태
+        holder.img_sky_max.setImageResource(items.get(position).imgSkyMax);
+        holder.img_sky_min.setImageResource(items.get(position).imgSkyMin);
         holder.tv_tmp_week.setText(items.get(position).tvTmpWeek); // 최고온도
         holder.tv_tmn_week.setText(items.get(position).tvTmnWeek); // 최저온도
 
@@ -60,7 +62,9 @@ class VH extends RecyclerView.ViewHolder{
     TextView tv_pop;
     TextView tv_tmp_week;
     TextView tv_tmn_week;
-    TextView img_sky;
+//    TextView img_sky;
+    ImageView img_sky_max;
+    ImageView img_sky_min;
 
 
     public VH(@NonNull View itemView) {
@@ -69,7 +73,10 @@ class VH extends RecyclerView.ViewHolder{
         tv_pop= itemView.findViewById(R.id.tv_pop);
         tv_tmp_week= itemView.findViewById(R.id.tmp_week);
         tv_tmn_week= itemView.findViewById(R.id.tmn_week);
-        img_sky= itemView.findViewById(R.id.img_sky);
+        //img_sky= itemView.findViewById(R.id.img_sky);
+        img_sky_max= itemView.findViewById(R.id.img_sky_max);
+        img_sky_min= itemView.findViewById(R.id.img_sky_min);
+
     }
 }
 

@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="16dp">
+    android:layout_margin="20dp">
 
     <!--  요일  -->
     <TextView
@@ -10,7 +10,7 @@
         android:layout_width="56dp"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="10dp"
+        android:layout_marginLeft="6dp"
         android:gravity="right"
         android:text="화요일"
         android:textSize="18sp"
@@ -29,16 +29,32 @@
         android:textSize="18sp" />
 
     <!--  하늘상태 이미지  -->
-    <TextView
-        android:id="@+id/img_sky"
-        android:layout_width="80dp"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="18dp"
+<!--    <TextView-->
+<!--        android:id="@+id/img_sky"-->
+<!--        android:layout_width="80dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_centerVertical="true"-->
+<!--        android:layout_marginLeft="18dp"-->
+<!--        android:layout_toRightOf="@id/tv_pop"-->
+<!--        android:gravity="right"-->
+<!--        android:text="맑음"-->
+<!--        android:textSize="18sp" />-->
+    <ImageView
+        android:id="@+id/img_sky_max"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginLeft="42dp"
         android:layout_toRightOf="@id/tv_pop"
         android:gravity="right"
-        android:text="맑음"
-        android:textSize="18sp" />
+        android:src="@drawable/weather_sunny" />
+
+    <ImageView
+        android:id="@+id/img_sky_min"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_toRightOf="@id/img_sky_max"
+        android:gravity="right"
+        android:src="@drawable/weather_sunny" />
 
     <TextView
         android:id="@+id/tmp_week"
@@ -51,12 +67,6 @@
         android:text="99°"
         android:textSize="18sp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="/"
-        android:layout_toLeftOf="@id/tmn_week"
-        android:textSize="18sp"/>
 
     <TextView
         android:id="@+id/tmn_week"
@@ -64,7 +74,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
-        android:layout_marginRight="10dp"
+        android:layout_marginRight="4dp"
         android:gravity="right"
         android:text="99°"
         android:textSize="18sp" />
