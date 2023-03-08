@@ -1,5 +1,15 @@
 package kr.co.widgetweather.activities;
 
+import static java.lang.Math.asin;
+import static java.lang.Math.atan;
+import static java.lang.Math.atan2;
+import static java.lang.Math.cos;
+import static java.lang.Math.log;
+import static java.lang.Math.pow;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.tan;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -11,7 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -20,15 +30,14 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -36,7 +45,6 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -58,6 +66,9 @@ import retrofit2.Retrofit;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
+
+    ProgressDialog dialog;
+    int loadData= 0;
 
     RecyclerView recycler;
     WeeklyWeatherRecyclerAdapter adapter;
@@ -99,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         getLocation(); // 위치 가져오기
 
-
     } // onCreate()
 
     @Override
@@ -113,22 +123,19 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         loadData(); // 디바이스에 저장된 데이터들 불러오기
 
         // 디바이스에 저장된 위도,경도 데이터값을 불러와서 changeToAddress()에 데이터 넘기기
-        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
-        nx= pref.getString("nx", nx);
-        ny= pref.getString("ny", ny);
+//        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
+//        nx= pref.getString("nx", nx);
+//        ny= pref.getString("ny", ny);
         //changeToAddress(this, nx, ny);
 
 
     }
 
-
-
-
-
     // 새로고침을 하기 위한 메소드
     @Override
     public void onRefresh() {
         onResume();
+
         swipeRefreshLayout.setRefreshing(false);
     }
 
@@ -180,6 +187,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         }
     });
+
 
     // 마지막으로 알려진 위치 가져오기
     void getLocation() {
@@ -280,6 +288,14 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     // Json 파싱
     void retrofitParsing(){
 
+        ProgressBar progressBar = findViewById(R.id.progress_bar);
+        progressBar.setIndeterminate(false);
+        progressBar.setProgress(80);
+
+        dialog = new ProgressDialog(MainActivity.this);
+        dialog.setMessage("데이터를 불러오는 중입니다.");
+        dialog.show();
+
         long now= System.currentTimeMillis();
         Date today = new Date(now); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*1))
 
@@ -289,27 +305,28 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         String getDate= sdf.format(today);
         String hour= sdfHour.format(today)+"00";
 
-        String getTime= "0500";
+        String getTime= "0200";
         String getTime2= "0600";
 
-        // [ 중기육상예보 ] : 발표시각과 현재시각이 같은경우 현재시간으로 요청항목에 발표시각 변경 (1일 8회)
+        // [ 단기예보 ] : 발표시각과 현재시각이 같은경우 현재시간으로 요청항목에 발표시각 변경 (1일 8회)
         if (hour.equals("0200")){
             getTime= hour;
-        }else if(hour.equals("0500")){
-            getTime= hour;
-        }else if(hour.equals("0800")){
-            getTime= hour;
-        }else if(hour.equals("1100")){
-            getTime= hour;
-        }else if(hour.equals("1400")){
-            getTime= hour;
-        }else if(hour.equals("1700")){
-            getTime= hour;
-        }else if(hour.equals("2000")){
-            getTime= hour;
-        }else if(hour.equals("2300")){
-            getTime= hour;
         }
+//        else if(hour.equals("0500")){
+//            getTime= hour;
+//        }else if(hour.equals("0800")){
+//            getTime= hour;
+//        }else if(hour.equals("1100")){
+//            getTime= hour;
+//        }else if(hour.equals("1400")){
+//            getTime= hour;
+//        }else if(hour.equals("1700")){
+//            getTime= hour;
+//        }else if(hour.equals("2000")){
+//            getTime= hour;
+//        }else if(hour.equals("2300")){
+//            getTime= hour;
+//        }
 
         // [ 중기기온예보 ] : 발표시각과 현재시각이 같은경우 현재시간으로 요청항목에 발표시각 변경 (1일 2회)
         if (hour.equals("0600")){
@@ -318,12 +335,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             getTime2= hour;
         }
 
-        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
-        nx= pref.getString("nx", nx);
-        ny= pref.getString( "ny", ny);
-
-        int lat= Math.round(Float.parseFloat(nx));
-        int lng= Math.round(Float.parseFloat(ny));
+//        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
+//        nx= pref.getString("nx", nx);
+//        ny= pref.getString( "ny", ny);
+//
+//        int lat= Math.round(Float.parseFloat(nx));
+//        int lng= Math.round(Float.parseFloat(ny));
 
         // 단기 기온조회 baseUrl
         String baseUrl = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/";
@@ -333,8 +350,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         String dataType= "json";
         String baseDate= getDate; // 현재 날짜를 가져온 데이터
         String baseTime= getTime; // 1일동안 8회 변경
-        String nx= lat+""; // 위도
-        String ny= lng+""; // 경도
+        String x= "57"; // 위도로 x좌표를 구한 값
+        String y= "127"; // 경도로 y좌표를 구한 값
         String tmFc= getDate+getTime2;
         Log.d("DATETEST", tmFc);
 
@@ -347,14 +364,13 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         RetrofitService retrofitService= retrofit.create(RetrofitService.class);
 
         // URL 요청항목 값들을 getJson() 메소드에 대입
-        Call<String> call= retrofitService.getJson(pageNo, numOfRows, dataType, baseDate, baseTime, nx, ny);
-        call.enqueue(new Callback<String>() {
+        retrofitService.getJson(pageNo, numOfRows, dataType, baseDate, baseTime, x, y).enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
-
+                Log.d("URL", call.request().url().toString());
                 try{
                     // 오늘부터 4일후 까지의 날짜데이터를 배열형태로 반복문을 통해 가져오기
-                    String[] days= {"","",""};
+                    String[] days= {"","","",""};
                     for (int i=0; i<days.length; i++){
                         Date date= new Date(now+(1000*60*60*24*i));
                         days[i]= sdf.format(date);
@@ -367,7 +383,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     String yesterday= sdf.format(dateYesterday); // 어제날짜
                     String hour= sdfHour.format(date)+"00"; // 2시간 후
 
-                    int[] changeDays= {0,0,0,0};
+                    int[] changeDays= {0,0,0,0,0};
 
 //                    SNO : 1시간 신적설
 //                    REH : 습도
@@ -395,31 +411,70 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                         JSONObject obj= item.getJSONObject(i);
                         String category= obj.getString("category");
 
-                        // 1시간 기온
-                        if (category.equals("TMP")){
+                        if (category.equals("TMP")) {
                             String fcstValue= obj.getString("fcstValue");
                             String fcstDate= obj.getString("fcstDate");
                             String fcstTime= obj.getString("fcstTime");
                             Log.d("valueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime);
 
+                            if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)){
+                                tmp.setText(fcstValue+"°");
+                            }
+                        }
+
+                        // 최고기온
+                        if (category.equals("TMX")){
+                            String fcstValue= obj.getString("fcstValue");
+                            String fcstDate= obj.getString("fcstDate");
+                            String fcstTime= obj.getString("fcstTime");
+                            Log.d("valueTMX", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime);
+
+                            float value= Float.parseFloat(fcstValue);
+
                             // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
-                            if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
-                                Log.d("trueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
-                                shortItems[0].tvTmpWeek= fcstValue+"°";
-                                Log.d("testData", shortItems[0].tvTmpWeek+","+ fcstValue);
+                            if (fcstDate.equals(days[0])) { // 오늘 날짜
+                                Log.d("trueTMX", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
+
+                                shortItems[0].tvTmpWeek= Math.round(value)+"°";
+                                Log.d("testDataTMX", shortItems[0].tvTmpWeek+","+ fcstValue);
                                 shortItems[0].tvWeek= "오늘";
                                 changeDays[0]+= 1; // 날짜변경
                             }
 
                             for (int a=1; a<=2; a++){
-                                if (fcstDate.equals(days[a]) && hour.equals(fcstTime)){
-                                    Log.d("trueTMP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[0]));
-                                    shortItems[a].tvTmpWeek= fcstValue+"°";
+                                if (fcstDate.equals(days[a])){
+                                    Log.d("trueTMX", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[0]));
+                                    shortItems[a].tvTmpWeek= Math.round(value)+"°";
                                     shortItems[a].tvWeek= dayWeek(changeDays[0]);
                                     changeDays[0]+= 1;
                                 }
                             }
-                        } // if TMP 1시간 기온
+                        } // if TMX 최고기온
+
+                        // 최저기온
+                        if(category.equals("TMN")){
+                            String fcstValue= obj.getString("fcstValue");
+                            String fcstDate= obj.getString("fcstDate");
+                            String fcstTime= obj.getString("fcstTime");
+                            Log.d("valueTMN", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime);
+                            float value= Float.parseFloat(fcstValue);
+
+                            if (fcstDate.equals(days[0])){
+                                Log.d("trueTMN", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
+                                shortItems[0].tvTmnWeek= Math.round(value)+"°";
+                                Log.d("tsetDataTMN", shortItems[0].tvTmnWeek+","+ fcstValue);
+                                changeDays[1]+= 1;
+                            }
+
+                            for (int a=1; a<=2; a++){
+                                if (fcstDate.equals(days[a])){
+                                    Log.d("trueTMN", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
+                                    shortItems[a].tvTmnWeek= Math.round(value)+"°";
+                                    Log.d("tsetDataTMN", shortItems[a].tvTmnWeek+","+ fcstValue);
+                                    changeDays[1]+= 1;
+                                }
+                            }
+                        }
 
                         // 강수확률
                         if (category.equals("POP")){
@@ -432,12 +487,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                             if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
                                 Log.d("truePOP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
                                 shortItems[0].tvPop= fcstValue+"%";
-                                changeDays[1]+= 1; // 날짜변경
+                                changeDays[2]+= 1; // 날짜변경
                             }
                             for (int k=1; k<=2; k++){
                                 if (fcstDate.equals(days[k]) && hour.equals(fcstTime)){
                                     Log.d("truePOP", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[1]));
-                                    changeDays[1]+= 1;
+                                    changeDays[2]+= 1;
                                     shortItems[k].tvPop= fcstValue+"%";
                                 }
                             }
@@ -454,7 +509,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
                             if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
                                 Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
-                                changeDays[2]+= 1; // 날짜변경
+                                changeDays[3]+= 1; // 날짜변경
                                 if (fcstValue.equals("1")){
                                     Log.d("WEATHERQ", "맑음");
                                     shortItems[0].imgSky= "맑음";
@@ -472,7 +527,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
                                 if (fcstDate.equals(days[j]) && hour.equals(fcstTime)) {
                                     Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[2]));
-                                    changeDays[2]+= 1; // 날짜변경
+                                    changeDays[3]+= 1; // 날짜변경
 
                                     // 얻어온 하늘상태 데이터 값에 따라 문자열 넣기
                                     if (fcstValue.equals("1")){
@@ -499,7 +554,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                             // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
                             if (fcstDate.equals(days[0]) && hour.equals(fcstTime) || fcstDate.equals(yesterday)) { // 오늘 날짜
                                 Log.d("trueREH", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
-                                changeDays[3]+= 1; // 날짜변경
+                                changeDays[4]+= 1; // 날짜변경
                                 TextView tvReh;
                                 tvReh= findViewById(R.id.tv_reh);
                                 tvReh.setText(fcstValue+"%");
@@ -509,149 +564,153 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     } // for
                     weekItems.clear();
                     for (int i=0; i<= 2; i++){
-                        weekItems.add(shortItems[i]);
-                        Log.d("weekItems", weekItems.size()+"");
-                        Log.d("weekitems", shortItems[i].tvTmpWeek);
-                        Log.d("weekitems", shortItems[i].tvWeek);
-                        Log.d("weekitems", shortItems[i].imgSky);
-                        Log.d("weekitems", shortItems[i].tvPop);
+
+
+                        weekItems.add(i,shortItems[i]);
+//                        Log.d("weekItems", weekItems.size()+"");
+//                        Log.d("weekitems", shortItems[i].tvTmpWeek);
+//                        Log.d("weekitems", shortItems[i].tvWeek);
+//                        Log.d("weekitems", shortItems[i].imgSky);
+//                        Log.d("weekitems", shortItems[i].tvPop);
+//                        Log.d("SIZE", weekItems.size()+"");
                     }
-                    adapter.notifyDataSetChanged();
+
+
+                    // 중기 육상예보조회 base Url
+                    String baseUrl2 = "http://apis.data.go.kr/1360000/MidFcstInfoService/";
+
+                    // 중기 육상예보 json 파싱작업
+                    Retrofit retrofit2= RetrofitHelper.getInstance(baseUrl2);
+                    RetrofitService retrofitService2= retrofit2.create(RetrofitService.class);
+
+                    // URL 요청항목 값들을 getJson() 메소드에 대입
+                    retrofitService2.getJson2(pageNo, numOfRows2, dataType, regId1, tmFc).enqueue(new Callback<String>() {
+                        @Override
+                        public void onResponse(Call<String> call, Response<String> response) {
+                            String[] rnStAm= {"","","",""};
+                            String[] rnStPm= {"","","",""};
+                            String[] wfAm= {"","","",""};
+                            String[] wfPm= {"","","",""};
+                            Log.d("URL", call.request().url().toString());
+
+                            try {
+                                JSONObject jsonObject= new JSONObject(response.body());
+                                JSONObject res= jsonObject.getJSONObject("response");
+                                JSONObject body= res.getJSONObject("body");
+                                JSONObject items= body.getJSONObject("items");
+                                JSONArray item= items.getJSONArray("item");
+
+                                for (int i=0; i<item.length();i++){
+                                    JSONObject obj= item.getJSONObject(i);
+
+                                    int index= 0;
+
+                                    for (int j=3; j<=6; j++){
+
+                                        // 3,4,5,6일 후 오전,오후 강수확률
+                                        rnStAm[index]= obj.getString("rnSt"+j+"Am");
+                                        rnStPm[index]= obj.getString("rnSt"+j+"Pm");
+
+                                        // 3,4,5,6일 후 오전,오후 하늘상태
+                                        wfAm[index]= obj.getString("wf"+j+"Am");
+                                        wfPm[index]= obj.getString("wf"+j+"Pm");
+                                        Log.d("rnData", rnStAm[index]+","+rnStPm[index]+ ", index : "+ index + " j :" + j);
+                                        Log.d("wfData", wfAm[index]+","+wfPm[index]+ ", index : "+ index + " j :" + j);
+                                        shortItems[j].tvWeek= dayWeek(index+3);
+                                        shortItems[j].tvPop= rnStPm[index]+"%";
+                                        shortItems[j].imgSky= wfPm[index];
+                                        index+=1;
+                                    } // for
+
+                                } // for
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }// catch
+
+                            // 중기 기온조회 base Url
+                            String baseUrl3 = "http://apis.data.go.kr/1360000/MidFcstInfoService/";
+
+                            // 중기기온 json 파싱작업
+                            Retrofit retrofit3= RetrofitHelper.getInstance(baseUrl3);
+                            RetrofitService retrofitService3= retrofit3.create(RetrofitService.class);
+
+                            // URL 요청항목 값들을 getJson() 메소드에 대입
+                            retrofitService3.getJson3(pageNo, numOfRows2, dataType, regId2, tmFc).enqueue(new Callback<String>() {
+                                @Override
+                                public void onResponse(Call<String> call, Response<String> response) {
+                                    Log.d("URL", call.request().url().toString());
+                                    String[] taMax= {"","","",""};
+
+                                    try {
+                                        JSONObject jsonObject = new JSONObject(response.body());
+                                        JSONObject res= jsonObject.getJSONObject("response");
+                                        JSONObject body= res.getJSONObject("body");
+                                        JSONObject items= body.getJSONObject("items");
+                                        JSONArray item= items.getJSONArray("item");
+
+                                        for (int i=0; i<item.length();i++){
+                                            JSONObject obj= item.getJSONObject(i);
+
+
+                                            int index[]= {0,0};
+
+                                            // 3,4,5,6일 후 최고기온
+                                            for (int j=3; j<=6; j++){
+                                                taMax[index[0]]= obj.getString("taMax"+j);
+                                                shortItems[j].tvTmpWeek= taMax[index[0]]+"°";
+
+                                                index[0]+=1;
+                                            } // for
+
+                                            // 3,4,5,6일 후 최저기온
+                                            for (int j=3; j<=6; j++){
+                                                taMax[index[1]]= obj.getString("taMin"+j);
+                                                shortItems[j].tvTmnWeek= taMax[index[1]]+"°";
+
+                                                index[1]+=1;
+                                            } // for
+
+                                            for (int j=3; j<=6; j++){
+                                                weekItems.add(shortItems[j]);
+                                                Log.d("SIZE", weekItems.size()+"");
+                                            }
+                                            adapter.notifyDataSetChanged();
+                                            loadData=1;
+                                            if (loadData == 1){
+                                                dialog.dismiss();
+                                                loadData=0;
+                                            }
+
+                                        } // for
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                }
+
+                                @Override
+                                public void onFailure(Call<String> call, Throwable t) {
+                                }
+                            });
+                        } // onResponse
+
+                        @Override
+                        public void onFailure(Call<String> call, Throwable t) {
+
+                        }
+                    }); // call2 [ 중기기온 ]
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
-
-
-            }
+            }// 단기예보 onResponse
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
                 Log.v("TAG", t.getMessage());
             }
         }); // 단기기온 callback
-
-
-
-
-        // 중기 육상예보조회 base Url
-        String baseUrl2 = "http://apis.data.go.kr/1360000/MidFcstInfoService/";
-
-        // 중기기온 json 파싱작업
-        Retrofit retrofit2= RetrofitHelper.getInstance(baseUrl2);
-        RetrofitService retrofitService2= retrofit2.create(RetrofitService.class);
-
-        // URL 요청항목 값들을 getJson() 메소드에 대입
-        Call<String> call2= retrofitService2.getJson2(pageNo, numOfRows2, dataType, regId1, tmFc);
-        call2.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                String[] rnStAm= {"","","",""};
-                String[] rnStPm= {"","","",""};
-                String[] wfAm= {"","","",""};
-                String[] wfPm= {"","","",""};
-
-                try {
-                    JSONObject jsonObject= new JSONObject(response.body());
-                    JSONObject res= jsonObject.getJSONObject("response");
-                    JSONObject body= res.getJSONObject("body");
-                    JSONObject items= body.getJSONObject("items");
-                    JSONArray item= items.getJSONArray("item");
-
-                    for (int i=0; i<item.length();i++){
-                        JSONObject obj= item.getJSONObject(i);
-
-                        int index= 0;
-
-                        for (int j=3; j<=6; j++){
-
-
-                            // 3,4,5,6일 후 오전,오후 강수확률
-                            rnStAm[index]= obj.getString("rnSt"+j+"Am");
-                            rnStPm[index]= obj.getString("rnSt"+j+"Pm");
-
-                            // 3,4,5,6일 후 오전,오후 하늘상태
-                            wfAm[index]= obj.getString("wf"+j+"Am");
-                            wfPm[index]= obj.getString("wf"+j+"Pm");
-                            Log.d("rnData", rnStAm[index]+","+rnStPm[index]+ ", index : "+ index + " j :" + j);
-                            Log.d("wfData", wfAm[index]+","+wfPm[index]+ ", index : "+ index + " j :" + j);
-                            shortItems[j].tvWeek= dayWeek(index+3);
-                            shortItems[j].tvPop= rnStPm[index]+"%";
-                            shortItems[j].imgSky= wfPm[index];
-                            index+=1;
-                        } // for
-
-                    } // for
-
-
-
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }// catch
-
-                // 중기 기온조회 base Url
-                String baseUrl3 = "http://apis.data.go.kr/1360000/MidFcstInfoService/";
-
-                // 중기기온 json 파싱작업
-                Retrofit retrofit3= RetrofitHelper.getInstance(baseUrl3);
-                RetrofitService retrofitService3= retrofit3.create(RetrofitService.class);
-
-                // URL 요청항목 값들을 getJson() 메소드에 대입
-                Call<String> call3= retrofitService3.getJson3(pageNo, numOfRows2, dataType, regId2, tmFc);
-                call3.enqueue(new Callback<String>() {
-                    @Override
-                    public void onResponse(Call<String> call, Response<String> response) {
-
-                        String[] taMax= {"","","",""};
-
-                        try {
-                            JSONObject jsonObject = new JSONObject(response.body());
-                            JSONObject res= jsonObject.getJSONObject("response");
-                            JSONObject body= res.getJSONObject("body");
-                            JSONObject items= body.getJSONObject("items");
-                            JSONArray item= items.getJSONArray("item");
-
-                            for (int i=0; i<item.length();i++){
-                                JSONObject obj= item.getJSONObject(i);
-
-
-                                int index= 0;
-
-                                // 3,4,5,6일 후 최고기온
-                                for (int j=3; j<=6; j++){
-                                    taMax[index]= obj.getString("taMax"+j);
-                                    shortItems[j].tvTmpWeek= taMax[index];
-                                    weekItems.add(shortItems[j]);
-                                    Log.d("SSSS", taMax[index]);
-                                    index+=1;
-                                } // for
-
-                            } // for
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-
-
-
-
-                    }
-
-                    @Override
-                    public void onFailure(Call<String> call, Throwable t) {
-
-                    }
-                });
-            } // onResponse
-
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-
-            }
-        }); // call2 [ 중기기온 ]
-        adapter.notifyDataSetChanged();
 
     } // retrofitParsing()
 

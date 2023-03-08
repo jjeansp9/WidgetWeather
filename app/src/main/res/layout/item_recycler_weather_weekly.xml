@@ -2,60 +2,71 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp">
+    android:layout_margin="16dp">
 
-        <!--  요일  -->
+    <!--  요일  -->
     <TextView
         android:id="@+id/week"
-        android:layout_width="70dp"
+        android:layout_width="56dp"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginLeft="10dp"
         android:gravity="right"
         android:text="화요일"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
     <!--    강수확률    -->
-    <TextView
-        android:id="@+id/view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="110dp"
-        android:text="강수확률 :"
-        android:textSize="18sp"
-        android:layout_centerVertical="true"/>
-
     <TextView
         android:id="@+id/tv_pop"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="4dp"
-        android:layout_toRightOf="@id/view"
+        android:layout_marginLeft="18dp"
+        android:layout_toRightOf="@id/week"
         android:gravity="right"
-        android:text="0%"
+        android:text="80%"
         android:textSize="18sp" />
 
     <!--  하늘상태 이미지  -->
     <TextView
         android:id="@+id/img_sky"
-        android:layout_width="50dp"
+        android:layout_width="80dp"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_toLeftOf="@id/tmp_week"
+        android:layout_marginLeft="18dp"
+        android:layout_toRightOf="@id/tv_pop"
         android:gravity="right"
         android:text="맑음"
-        android:textSize="18sp"/>
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/tmp_week"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="10dp"
+        android:layout_toLeftOf="@id/tmn_week"
+        android:gravity="right"
+        android:text="99°"
+        android:textSize="18sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="/"
+        android:layout_toLeftOf="@id/tmn_week"
+        android:textSize="18sp"/>
+
+    <TextView
+        android:id="@+id/tmn_week"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:layout_marginRight="10dp"
         android:gravity="right"
-        android:text="12°"
+        android:text="99°"
         android:textSize="18sp" />
 
 

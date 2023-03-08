@@ -4,8 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.MainActivity"
-    android:background="@drawable/bg">
+    tools:context=".activities.MainActivity">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:alpha="0.4"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/refresh_layout"
@@ -35,7 +42,8 @@
                         android:layout_marginLeft="30dp"
                         android:layout_marginTop="24dp"
                         android:layout_marginEnd="24dp"
-                        android:layout_marginBottom="24dp">
+                        android:layout_marginBottom="24dp"
+                        >
 
                         <!--      온도      -->
                         <TextView
@@ -80,7 +88,7 @@
                             android:text="습도 :"
                             android:textColor="@color/black"
                             android:textSize="20sp"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tv_reh"
@@ -89,7 +97,7 @@
                             android:layout_below="@id/layout"
                             android:layout_marginLeft="4dp"
                             android:layout_toRightOf="@id/view"
-                            android:text="20%"
+                            android:text="0%"
                             android:textColor="@color/black"
                             android:textSize="20sp"
                             android:textStyle="bold" />
@@ -99,8 +107,8 @@
                     <LinearLayout
                         android:layout_width="200dp"
                         android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:layout_alignParentRight="true">
+                        android:layout_alignParentRight="true"
+                        android:orientation="vertical">
 
                         <!--      하늘상태 이미지      -->
                         <ImageView
@@ -115,32 +123,108 @@
                             android:id="@+id/tv_sky"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
                             android:text="맑음"
-                            android:textStyle="bold"
                             android:textColor="@color/black"
                             android:textSize="20sp"
-                            android:layout_gravity="center_horizontal"/>
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="380dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="20dp"
+                    android:padding="16dp">
+                    <!--  요일  -->
+                    <TextView
+                        android:id="@+id/week"
+                        android:layout_width="50dp"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="22dp"
+                        android:gravity="right"
+                        android:text="날짜"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <!--    강수확률    -->
+                    <TextView
+                        android:id="@+id/percent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="86dp"
+                        android:text="강수확률"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <!--  하늘상태 이미지  -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginRight="22dp"
+                        android:layout_toLeftOf="@id/tmp_week"
+                        android:gravity="center"
+                        android:text="하늘상태"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tmp_week"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginRight="14dp"
+                        android:layout_toLeftOf="@id/tmn_week"
+                        android:gravity="center"
+                        android:text="최고"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tmn_week"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginRight="18dp"
+                        android:gravity="center"
+                        android:text="최저"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </RelativeLayout>
+
 
                 <!--      주간날씨 데이터를 불러오기 위한 뷰      -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyler_weather_weekly"
                     android:layout_width="380dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
                     android:layout_gravity="center"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    android:orientation="vertical"
                     android:background="@drawable/corner"
-                    android:padding="16dp"/>
+                    android:orientation="vertical"
+                    android:padding="8dp"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
             </LinearLayout>
 
         </ScrollView>
-
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
 
 
 

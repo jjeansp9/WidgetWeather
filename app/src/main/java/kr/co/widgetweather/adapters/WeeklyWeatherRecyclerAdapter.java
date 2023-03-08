@@ -43,7 +43,8 @@ public class WeeklyWeatherRecyclerAdapter extends RecyclerView.Adapter<VH> {
         holder.tv_week.setText(items.get(position).tvWeek); // 요일
         holder.tv_pop.setText(items.get(position).tvPop); // 강수확률 텍스트
         holder.img_sky.setText(items.get(position).imgSky); // 하늘상태
-        holder.tv_tmx_week.setText(items.get(position).tvTmpWeek); // 1시간 온도
+        holder.tv_tmp_week.setText(items.get(position).tvTmpWeek); // 최고온도
+        holder.tv_tmn_week.setText(items.get(position).tvTmnWeek); // 최저온도
 
     }
 
@@ -57,7 +58,8 @@ class VH extends RecyclerView.ViewHolder{
 
     TextView tv_week;
     TextView tv_pop;
-    TextView tv_tmx_week;
+    TextView tv_tmp_week;
+    TextView tv_tmn_week;
     TextView img_sky;
 
 
@@ -65,7 +67,8 @@ class VH extends RecyclerView.ViewHolder{
         super(itemView);
         tv_week= itemView.findViewById(R.id.week);
         tv_pop= itemView.findViewById(R.id.tv_pop);
-        tv_tmx_week= itemView.findViewById(R.id.tmp_week);
+        tv_tmp_week= itemView.findViewById(R.id.tmp_week);
+        tv_tmn_week= itemView.findViewById(R.id.tmn_week);
         img_sky= itemView.findViewById(R.id.img_sky);
     }
 }
