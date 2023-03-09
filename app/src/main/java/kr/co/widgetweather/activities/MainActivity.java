@@ -96,8 +96,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 위치 권한
-        permissionLocation();
+
+        permissionLocation(); // 위치 권한
+        getLocation(); // 위치 가져오기
 
         recycler = findViewById(R.id.recyler_weather_weekly);
         recycler.setLayoutManager(new LinearLayoutManager(this));
@@ -108,25 +109,26 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         swipeRefreshLayout = findViewById(R.id.refresh_layout);
         swipeRefreshLayout.setOnRefreshListener(this);
 
-        getLocation(); // 위치 가져오기
+
 
     } // onCreate()
 
     @Override
     protected void onResume() {
         super.onResume();
-        getLocation(); // 위치 가져오기
+
         //MainThread thread = new MainThread(); // MainThread() 생성
         //thread.start(); // xml 파싱시작
 
+        getLocation(); // 위치 가져오기
         retrofitParsing(); // json 파싱한 데이터 불러오기
         loadData(); // 디바이스에 저장된 데이터들 불러오기
 
         // 디바이스에 저장된 위도,경도 데이터값을 불러와서 changeToAddress()에 데이터 넘기기
-//        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
-//        nx= pref.getString("nx", nx);
-//        ny= pref.getString("ny", ny);
-        //changeToAddress(this, nx, ny);
+        SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
+        nx= pref.getString("nx", nx);
+        ny= pref.getString("ny", ny);
+        changeToAddress(this, nx, ny);
 
 
     }
