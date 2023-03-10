@@ -101,7 +101,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
 
         permissionLocation(); // 위치 권한
-        getLocation(); // 위치 가져오기
 
         recycler = findViewById(R.id.recyler_weather_weekly);
         recycler.setLayoutManager(new LinearLayoutManager(this));
@@ -136,9 +135,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         if (nx!= null && ny!= null){ // 위도 경도를 불러왔다면 주소로 변환해서 텍스트에 보여주기
             changeToAddress(this, nx, ny);
         }
-
-
-
     }
 
     // 새로고침을 하기 위한 메소드
@@ -189,12 +185,17 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             .RequestMultiplePermissions(), result -> {
         Boolean fineLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
         Boolean coarseLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false);
+
         if (fineLocationGranted != null && fineLocationGranted) {
+            getLocation(); // 위치 가져오기
+            Toast.makeText(context_main, "위치권한 허용1", Toast.LENGTH_SHORT).show();
 
         } else if (coarseLocationGranted != null && coarseLocationGranted) {
+            getLocation(); // 위치 가져오기
+            Toast.makeText(context_main, "위치권한 허용2", Toast.LENGTH_SHORT).show();
 
         } else {
-
+            Toast.makeText(context_main, "위치권한을 거부하였습니다.", Toast.LENGTH_SHORT).show();
         }
     });
 

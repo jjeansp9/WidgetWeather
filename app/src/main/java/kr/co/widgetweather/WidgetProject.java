@@ -44,7 +44,6 @@ public class WidgetProject extends AppWidgetProvider {
         }
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.N)
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
