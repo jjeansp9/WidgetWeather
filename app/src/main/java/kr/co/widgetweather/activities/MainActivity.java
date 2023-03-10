@@ -1,15 +1,5 @@
 package kr.co.widgetweather.activities;
 
-import static java.lang.Math.asin;
-import static java.lang.Math.atan;
-import static java.lang.Math.atan2;
-import static java.lang.Math.cos;
-import static java.lang.Math.log;
-import static java.lang.Math.pow;
-import static java.lang.Math.sin;
-import static java.lang.Math.sqrt;
-import static java.lang.Math.tan;
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -55,6 +45,7 @@ import java.util.List;
 import java.util.Locale;
 
 import kr.co.widgetweather.R;
+import kr.co.widgetweather.WidgetProject;
 import kr.co.widgetweather.adapters.WeeklyWeatherRecyclerAdapter;
 import kr.co.widgetweather.model.WeeklyWeatherItem;
 import kr.co.widgetweather.network.RetrofitHelper;
@@ -67,8 +58,22 @@ import retrofit2.Retrofit;
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
-    ProgressDialog dialog;
-    int loadData= 0;
+    // 위젯으로 데이터를 넘겨주기 위한 변수
+    public static Context context_main; // 변수들을 위젯으로 넘기기 위해 Context 변수 참조
+    public String[] widgetTmx={"","","","","","",""}; // 최고기온
+    public String widgetTmn[]={"","","","","","",""}; // 최저기온
+    public int imgWidgetSky[]= {0,0,0,0,0,0,0,0}; // 하늘상태 이미지
+    public String tvWidgetSky[]= {"","","","","","",""}; // 하늘상태 텍스트
+    public int widgetNum= 0; // 화살표클릭 조건문 사용을 위한 변수
+    public int widgetChangeDays=0; // 날짜 변경을 위한 변수
+    public String address1= null; // 주소1 [ 시 ]
+    public String address2= null; // 주소2 [ 구 ]
+    // 현재시간을 날짜형태로
+    public long widgetNow= System.currentTimeMillis();
+    public Date widgetDate= new Date(widgetNow);
+
+    ProgressDialog dialog; // 프로그래스바 다이얼로그
+    int loadData= 0; // 데이터를 모두 불러왔을 때 프로그래스바를 종료하기위한 변수
 
     RecyclerView recycler;
     WeeklyWeatherRecyclerAdapter adapter;
@@ -87,8 +92,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     String skyCurrent;
 
     private FusedLocationProviderClient fusedLocationClient;
-    private LocationCallback locationCallback;
-
     SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
@@ -109,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         swipeRefreshLayout = findViewById(R.id.refresh_layout);
         swipeRefreshLayout.setOnRefreshListener(this);
 
+        context_main= this;
 
 
     } // onCreate()
@@ -124,11 +128,15 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         retrofitParsing(); // json 파싱한 데이터 불러오기
         loadData(); // 디바이스에 저장된 데이터들 불러오기
 
-        // 디바이스에 저장된 위도,경도 데이터값을 불러와서 changeToAddress()에 데이터 넘기기
         SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
-        nx= pref.getString("nx", nx);
-        ny= pref.getString("ny", ny);
-        changeToAddress(this, nx, ny);
+        nx= pref.getString("nx", null);
+        ny= pref.getString("ny", null);
+
+        // 디바이스에 저장된 위도,경도 데이터값을 불러와서 changeToAddress()에 데이터 넘기기
+        if (nx!= null && ny!= null){ // 위도 경도를 불러왔다면 주소로 변환해서 텍스트에 보여주기
+            changeToAddress(this, nx, ny);
+        }
+
 
 
     }
@@ -209,11 +217,13 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
                             SharedPreferences pref = getSharedPreferences("location", MODE_PRIVATE);
                             SharedPreferences.Editor editor = pref.edit();
+
                             Log.d("LOCATIONSS", location.getLatitude() + "," + location.getLongitude());
                             // 디바이스에 위도,경도 데이터 (Double -> String 변환) 저장
                             editor.putString("nx", Double.toString(location.getLatitude()));
                             editor.putString("ny", Double.toString(location.getLongitude()));
                             editor.commit();
+
                             Log.d("location", location.getLatitude() + "," + location.getLongitude());
                         } else {
                             Log.d("locationError", "failed");
@@ -233,6 +243,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         Geocoder geocoder = new Geocoder(context, Locale.KOREA);
         String nowAddress= null;
 
+
         // 디바이스에 저장된 위도, 경도 데이터 가져오기
         SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
         lat= pref.getString("nx", lat);
@@ -244,7 +255,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                 List<Address> address= geocoder.getFromLocation(Double.parseDouble(lat), Double.parseDouble(lng), 10);
                 if (address != null && address.size()>0){
                     String currentAddress= address.get(0).getAdminArea()+" "+address.get(0).getLocality(); // 주소 [ 시, 구 ] 불러오기
+                    address1= address.get(0).getAdminArea(); // 주소 [ 시 ] 위젯에 넘기기
+                    address2= address.get(0).getLocality(); // 주소 [ 구 ] 위젯에 넘기기
+
                     nowAddress = currentAddress;
+
+
 
                     String city= address.get(0).getLocality(); // 도시
 
@@ -275,14 +291,14 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                         regId2= "11B20605";
                         regId1= "11B00000";
                     }
+                    loc= findViewById(R.id.location);
+                    loc.setText(nowAddress);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 Toast.makeText(this, "주소를 가져올 수 없습니다"+ e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
-        loc= findViewById(R.id.location);
-        loc.setText(nowAddress);
 
         return nowAddress;
     }
@@ -371,9 +387,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             public void onResponse(Call<String> call, Response<String> response) {
                 Log.d("URL", call.request().url().toString());
                 try{
+
                     // 오늘부터 4일후 까지의 날짜데이터를 배열형태로 반복문을 통해 가져오기
                     String[] days= {"","","",""};
+
                     for (int i=0; i<days.length; i++){
+
                         Date date= new Date(now+(1000*60*60*24*i));
                         days[i]= sdf.format(date);
                         Log.d("days", days[i]+"["+i+"]");
@@ -413,6 +432,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                         JSONObject obj= item.getJSONObject(i);
                         String category= obj.getString("category");
 
+                        // 1시간 기온
                         if (category.equals("TMP")) {
                             String fcstValue= obj.getString("fcstValue");
                             String fcstDate= obj.getString("fcstDate");
@@ -440,6 +460,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                 shortItems[0].tvTmpWeek= Math.round(value)+"°";
                                 Log.d("testDataTMX", shortItems[0].tvTmpWeek+","+ fcstValue);
                                 shortItems[0].tvWeek= "오늘";
+                                widgetTmx[0]= Math.round(value)+"°"; // 위젯에 데이터 전달
+
                                 changeDays[0]+= 1; // 날짜변경
                             }
 
@@ -448,6 +470,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                     Log.d("trueTMX", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , "+dayWeek(changeDays[0]));
                                     shortItems[a].tvTmpWeek= Math.round(value)+"°";
                                     shortItems[a].tvWeek= dayWeek(changeDays[0]);
+                                    widgetTmx[a]= Math.round(value)+"°"; // 위젯에 데이터 전달
+
                                     changeDays[0]+= 1;
                                 }
                             }
@@ -455,24 +479,32 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
                         // 최저기온
                         if(category.equals("TMN")){
+
                             String fcstValue= obj.getString("fcstValue");
                             String fcstDate= obj.getString("fcstDate");
                             String fcstTime= obj.getString("fcstTime");
                             Log.d("valueTMN", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime);
+
                             float value= Float.parseFloat(fcstValue);
 
                             if (fcstDate.equals(days[0])){
+
                                 Log.d("trueTMN", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
                                 shortItems[0].tvTmnWeek= Math.round(value)+"°";
                                 Log.d("tsetDataTMN", shortItems[0].tvTmnWeek+","+ fcstValue);
+                                widgetTmn[0]= Math.round(value)+"°"; // 위젯에 데이터 전달
+                                Log.d("testWidgetTmn", widgetTmn[0]+"");
                                 changeDays[1]+= 1;
                             }
 
                             for (int a=1; a<=2; a++){
+
                                 if (fcstDate.equals(days[a])){
+
                                     Log.d("trueTMN", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
                                     shortItems[a].tvTmnWeek= Math.round(value)+"°";
                                     Log.d("tsetDataTMN", shortItems[a].tvTmnWeek+","+ fcstValue);
+                                    widgetTmn[a]= Math.round(value)+"°"; // 위젯에 데이터 전달
                                     changeDays[1]+= 1;
                                 }
                             }
@@ -480,6 +512,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
                         // 강수확률
                         if (category.equals("POP")){
+
                             String fcstValue= obj.getString("fcstValue");
                             String fcstDate= obj.getString("fcstDate");
                             String fcstTime= obj.getString("fcstTime");
@@ -508,13 +541,13 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                             Log.d("valueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime);
 
                             // 오늘날짜와 예보일자, 현재시간과 예보시각이 같은 경우에 해당하는 데이터 가져오기
-
                             if (fcstDate.equals(days[0]) && fcstTime.equals("0900") || fcstDate.equals(yesterday)) { // 오늘 날짜
                                 Log.d("trueSKY", category+" , "+ fcstValue +" , "+fcstDate +" , "+fcstTime +" , 오늘");
 
                                 if (fcstValue.equals("1")){
                                     Log.d("WEATHERQ", "맑음");
                                     shortItems[0].imgSkyMax= R.drawable.weather_sunny;
+
 
                                 }else if (fcstValue.equals("3")){
                                     Log.d("WEATHERQ", "구름많음");
@@ -531,14 +564,20 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                 if (fcstValue.equals("1")){
                                     Log.d("WEATHERQ", "맑음");
                                     shortItems[0].imgSkyMin= R.drawable.weather_sunny;
+                                    imgWidgetSky[0]= R.drawable.weather_sunny;
+                                    tvWidgetSky[0]= "맑음";
 
                                 }else if (fcstValue.equals("3")){
                                     Log.d("WEATHERQ", "구름많음");
                                     shortItems[0].imgSkyMin= R.drawable.weather_cloudy;
+                                    imgWidgetSky[0]= R.drawable.weather_cloudy;
+                                    tvWidgetSky[0]= "맑음";
 
                                 }else if (fcstValue.equals("4")){
                                     Log.d("WEATHERQ", "흐림");
                                     shortItems[0].imgSkyMin= R.drawable.weather_blur;
+                                    imgWidgetSky[0]= R.drawable.weather_blur; // 위젯 데이터전달
+                                    tvWidgetSky[0]= "맑음"; // 위젯 데이터전달
                                 }
                             }
                             for (int j= 1; j<= 2; j++){
@@ -551,14 +590,21 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                     if (fcstValue.equals("1")){
                                         Log.d("WEATHERQ", "맑음");
                                         shortItems[j].imgSkyMax= R.drawable.weather_sunny;
+                                        imgWidgetSky[j]= R.drawable.weather_sunny;
+                                        tvWidgetSky[j]= "맑음";
 
                                     }else if (fcstValue.equals("3")){
                                         Log.d("WEATHERQ", "구름많음");
                                         shortItems[j].imgSkyMax= R.drawable.weather_cloudy;
+                                        imgWidgetSky[j]= R.drawable.weather_cloudy;
+                                        tvWidgetSky[j]= "구름많음";
 
                                     }else if (fcstValue.equals("4")){
                                         Log.d("WEATHERQ", "흐림");
                                         shortItems[j].imgSkyMax=R.drawable.weather_blur;
+
+                                        imgWidgetSky[j]= R.drawable.weather_blur; // 위젯 데이터전달
+                                        tvWidgetSky[j]= "흐림"; // 위젯 데이터전달
 
                                     }
                                 }
@@ -622,8 +668,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     } // for
                     weekItems.clear();
                     for (int i=0; i<= 2; i++){
-
-
                         weekItems.add(i,shortItems[i]);
 //                        Log.d("weekItems", weekItems.size()+"");
 //                        Log.d("weekitems", shortItems[i].tvTmpWeek);
@@ -674,6 +718,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                         wfPm[index]= obj.getString("wf"+j+"Pm");
                                         Log.d("rnData", rnStAm[index]+","+rnStPm[index]+ ", index : "+ index + " j :" + j);
                                         Log.d("wfData", wfAm[index]+","+wfPm[index]+ ", index : "+ index + " j :" + j);
+
                                         shortItems[j].tvWeek= dayWeek(index+3);
                                         shortItems[j].tvPop= rnStPm[index]+"%";
                                         shortItems[j].imgSkyMax= R.drawable.weather_rain;
@@ -682,10 +727,14 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                         if (wfAm[index].equals("맑음")){
                                             Log.d("WEATHERQ", "맑음");
                                             shortItems[j].imgSkyMin= R.drawable.weather_sunny;
+                                            imgWidgetSky[j]= R.drawable.weather_sunny; // 위젯 데이터 전달
+                                            tvWidgetSky[j]= "맑음"; // 위젯 데이터 전달
 
                                         }else if (wfAm[index].equals("구름많음")){
                                             Log.d("WEATHERQ", "구름많음");
                                             shortItems[j].imgSkyMin= R.drawable.weather_cloudy;
+                                            imgWidgetSky[j]= R.drawable.weather_cloudy; // 위젯 데이터 전달
+                                            tvWidgetSky[j]= "구름많음"; // 위젯 데이터 전달
 
                                         }else if (wfAm[index].equals("구름많고 비")
                                                 ||wfAm[index].equals("구름많고 비/눈")
@@ -695,14 +744,20 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                                 ||wfAm[index].equals("흐리고 비/눈")){
                                             Log.d("WEATHERQ", "구름많고 비");
                                             shortItems[j].imgSkyMin=R.drawable.weather_rain;
+                                            imgWidgetSky[j]= R.drawable.weather_rain; // 위젯 데이터 전달
+                                            tvWidgetSky[j]= "구름많고 비"; // 위젯 데이터 전달
 
                                         }else if (wfAm[index].equals("구름많고 눈")||wfAm[index].equals("흐리고 눈")){
                                             Log.d("WEATHERQ", "흐림");
                                             shortItems[j].imgSkyMin=R.drawable.weather_rain;
+                                            imgWidgetSky[j]= R.drawable.weather_rain; // 위젯 데이터 전달
+                                            tvWidgetSky[j]= "흐리고 눈"; // 위젯 데이터 전달
 
                                         }else if (wfAm[index].equals("흐림")){
                                             Log.d("WEATHERQ", "흐림");
                                             shortItems[j].imgSkyMin=R.drawable.weather_blur;
+                                            imgWidgetSky[j]= R.drawable.weather_blur; // 위젯 데이터 전달
+                                            tvWidgetSky[j]= "흐림"; // 위젯 데이터 전달
 
                                         }
 
@@ -772,6 +827,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                             for (int j=3; j<=6; j++){
                                                 taMax[index[0]]= obj.getString("taMax"+j);
                                                 shortItems[j].tvTmpWeek= taMax[index[0]]+"°";
+                                                widgetTmx[j]= taMax[index[0]]+"°"; // 위젯 데이터 전달
 
                                                 index[0]+=1;
                                             } // for
@@ -780,6 +836,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                             for (int j=3; j<=6; j++){
                                                 taMax[index[1]]= obj.getString("taMin"+j);
                                                 shortItems[j].tvTmnWeek= taMax[index[1]]+"°";
+                                                widgetTmn[j]= taMax[index[1]]+"°"; // 위젯 데이터 전달
 
                                                 index[1]+=1;
                                             } // for
@@ -1115,7 +1172,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 //    } // Thread()
 
     // 요일관련 메소드
-    String dayWeek(int i){
+    public String dayWeek(int i){
         long now= System.currentTimeMillis();
         Date date = new Date(now);
 

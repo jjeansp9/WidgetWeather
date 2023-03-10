@@ -1,133 +1,228 @@
 package kr.co.widgetweather;
 
-import static android.app.Activity.RESULT_OK;
-import static android.content.Context.MODE_PRIVATE;
-
-import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
-import android.os.Bundle;
+import android.os.Build;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.annotation.RequiresApi;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import kr.co.widgetweather.activities.MainActivity;
 
 /**
  * Implementation of App Widget functionality.
  */
+@RequiresApi(api = Build.VERSION_CODES.N)
 public class WidgetProject extends AppWidgetProvider {
 
-    private final String ACTION_BTN_LEFT = "ButtonClick";
-    private final String ACTION_BTN_RIGHT = "ButtonClick";
-    //private final String REFESH = "refresh";
+    private static final String ACTION_BTN_LEFT = "Left";
+    private static final String ACTION_BTN_RIGHT = "Right";
+    private static final String ACTION_BTN_REFRESH = "Refresh";
 
-    //SwipeRefreshLayout swipeRefreshLayout;
+    public int num= ((MainActivity)MainActivity.context_main).widgetNum;
 
-    int tmpIndex = 0;
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
+        for(int appWidgetId : appWidgetIds) {
+            updateAppWidget(context, appWidgetManager, appWidgetId);
+        }
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
+                                int appWidgetId) {
+
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
 
         Intent intentLeft = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_LEFT);
-        Intent intentRight = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_RIGHT);
-        //Intent refresh = new Intent(context, WidgetProject.class).setAction(REFESH);
-
         PendingIntent pendingIntentLeft = PendingIntent.getBroadcast(context,0, intentLeft, 0);
+        remoteViews.setOnClickPendingIntent(R.id.previous, pendingIntentLeft);
+
+        Intent intentRight = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_RIGHT);
         PendingIntent pendingIntentRight = PendingIntent.getBroadcast(context,0, intentRight, 0);
-        //PendingIntent pendingIntentRefresh = PendingIntent.getBroadcast(context,0, refresh, 0);
+        remoteViews.setOnClickPendingIntent(R.id.next, pendingIntentRight);
 
-        remoteViews.setOnClickPendingIntent(R.id.previous, pendingIntentLeft); // 왼쪽 화살표 클릭시 작동
-        remoteViews.setOnClickPendingIntent(R.id.next, pendingIntentRight); // 오른쪽 화살표 클릭시 작동
-        //remoteViews.setOnClickPendingIntent(R.id.refresh_widget, pendingIntentRefresh); // 새로고침
+        Intent intentRefresh = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_REFRESH);
+        PendingIntent pendingIntentRefresh = PendingIntent.getBroadcast(context,0, intentRefresh, 0);
+        remoteViews.setOnClickPendingIntent(R.id.refresh_click, pendingIntentRefresh);
 
-        appWidgetManager.updateAppWidget(appWidgetIds, remoteViews);
+        long now= System.currentTimeMillis();
+        Date date = new Date(now); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
 
-        updateAppWidget(context, appWidgetManager, appWidgetIds[0]);
+        SimpleDateFormat sdf= new SimpleDateFormat("yyyy.MM.dd");
+        SimpleDateFormat sdfHour = new SimpleDateFormat("HH:mm");
+
+        String getTime = sdf.format(((MainActivity)MainActivity.context_main).widgetDate);
+        String getHour = sdfHour.format(date);
 
 
+        String location1= ((MainActivity)MainActivity.context_main).address1;
+        String location2= ((MainActivity)MainActivity.context_main).address2;
+        String tmx= ((MainActivity) MainActivity.context_main).widgetTmx[0];
+        String tmn= ((MainActivity)MainActivity.context_main).widgetTmn[0];
+        String tvSky= ((MainActivity)MainActivity.context_main).tvWidgetSky[0];
+        int imgSky = ((MainActivity)MainActivity.context_main).imgWidgetSky[0];
+
+
+        remoteViews.setTextViewText(R.id.tv_tmx, tmx);
+        remoteViews.setTextViewText(R.id.tv_tmn, tmn);
+        remoteViews.setImageViewResource(R.id.img_sky, imgSky);
+        remoteViews.setTextViewText(R.id.update, getHour);
+        remoteViews.setTextViewText(R.id.tv_sky, tvSky);
+        remoteViews.setTextViewText(R.id.tv_loc_1, location1);
+        remoteViews.setTextViewText(R.id.tv_loc_2, location2);
+        remoteViews.setTextViewText(R.id.widget_date, getTime);
+//
+//        Log.d("testWidgetTmn", tmn[0]+""+ location);
+
+        appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
     }
 
 
-    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-            int appWidgetId) {
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_project);
-
-        String address="";
-        String tmpCurrent="";
-        String skyCurrent="";
-
-        // 디바이스에 저장된 주소 데이터를 가져온 후 view에 데이터값으로 텍스트 변경
-        SharedPreferences prefLoc= context.getSharedPreferences("location", MODE_PRIVATE);
-        address= prefLoc.getString("address", address);
-        views.setTextViewText(R.id.tv_loc, address);
-
-        // 디바이스에 저장된 온도 데이터 텍스트 변경
-        SharedPreferences prefWeather= context.getSharedPreferences("weather", MODE_PRIVATE);
-        tmpCurrent= prefWeather.getString("tmp"+0, tmpCurrent);
-        views.setTextViewText(R.id.tv_tmp, tmpCurrent);
-
-        // 디바이스에 저장된 문자열에 따라 어울리는 이미지로 변경
-        skyCurrent= prefWeather.getString("sky", skyCurrent);
-        if(skyCurrent == ""){
-            views.setImageViewResource(R.id.img_sky, R.drawable.weather_sunny);
-        }else if (skyCurrent.equals("맑음")){
-            views.setImageViewResource(R.id.img_sky, R.drawable.weather_sunny);
-        }else if (skyCurrent.equals("구름많음")){
-            views.setImageViewResource(R.id.img_sky, R.drawable.weather_cloudy);
-        }else if(skyCurrent.equals("흐림")){
-            views.setImageViewResource(R.id.img_sky, R.drawable.weather_blur);
-        }
-
-        appWidgetManager.updateAppWidget(appWidgetId, views);
-    }
-
-    @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
 
         String action = intent.getAction();
 
-        if (action.equals(ACTION_BTN_LEFT)){ // 왼쪽 화살표 클릭시 동작
+        long now= System.currentTimeMillis();
+        Date date = new Date(now); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
+
+        SimpleDateFormat sdf= new SimpleDateFormat("yyyy.MM.dd");
+        SimpleDateFormat sdfHour = new SimpleDateFormat("HH:mm");
+
+        String getTime = sdf.format(((MainActivity)MainActivity.context_main).widgetDate);
+        String getHour = sdfHour.format(date);
+
+        // 왼쪽클릭
+        if(action.equals(ACTION_BTN_LEFT) && num > 0 && num < 7){
+
+//            Log.d("testWidgetTmn", tmn[0]+"");
+
+            //버튼 클릭 결과를 로그로 확인.
+            Log.d("이벤트클릭 테스트 ","왼쪽클릭!");
 
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+
             RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
             ComponentName componentName = new ComponentName(context, WidgetProject.class);
 
-            SharedPreferences prefWeather= context.getSharedPreferences("weather", MODE_PRIVATE);
-            String tmp = null;
+            ((MainActivity)MainActivity.context_main).widgetNum-=1;
+            ((MainActivity)MainActivity.context_main).widgetChangeDays-=1;
+            ((MainActivity)MainActivity.context_main).widgetDate= new Date(((MainActivity)MainActivity.context_main).widgetNow+(1000*60*60*24*((MainActivity)MainActivity.context_main).widgetChangeDays));
+            getTime = sdf.format(((MainActivity)MainActivity.context_main).widgetDate);
 
-            tmp= prefWeather.getString("tmp"+tmpIndex, tmp);
-            remoteViews.setTextViewText(R.id.tv_tmp, tmp);
-            Log.d("tmps", tmp);
-            tmpIndex-=1;
+            Log.d("testNumber", ((MainActivity)MainActivity.context_main).widgetNum+"");
+            Log.d("testChangeDay", ((MainActivity)MainActivity.context_main).widgetChangeDays+"");
 
-            appWidgetManager.updateAppWidget(componentName, remoteViews);
+            String tmx= ((MainActivity) MainActivity.context_main).widgetTmx[((MainActivity)MainActivity.context_main).widgetNum];
+            String tmn= ((MainActivity)MainActivity.context_main).widgetTmn[((MainActivity)MainActivity.context_main).widgetNum];
+            String tvSky= ((MainActivity)MainActivity.context_main).tvWidgetSky[((MainActivity)MainActivity.context_main).widgetNum];
+            int imgSky = ((MainActivity)MainActivity.context_main).imgWidgetSky[((MainActivity)MainActivity.context_main).widgetNum];
 
-        }else if (action.equals(ACTION_BTN_RIGHT)){ // 오른쪽 화살표 클릭시 동작
+            Log.d("values.", tmx+","+tmn+","+tvSky+","+imgSky);
 
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
-            ComponentName componentName = new ComponentName(context, WidgetProject.class);
+            remoteViews.setTextViewText(R.id.tv_tmx, tmx);
+            remoteViews.setTextViewText(R.id.tv_tmn, tmn);
+            remoteViews.setTextViewText(R.id.tv_sky, tvSky);
+            remoteViews.setImageViewResource(R.id.img_sky, imgSky);
+            remoteViews.setTextViewText(R.id.widget_date, getTime);
+            remoteViews.setTextViewText(R.id.update, getHour);
 
-            SharedPreferences prefWeather= context.getSharedPreferences("weather", MODE_PRIVATE);
-            String tmp = null;
-
-            tmp= prefWeather.getString("tmp"+tmpIndex, tmp);
-            remoteViews.setTextViewText(R.id.tv_tmp, tmp);
-            Log.d("tmps", tmp);
-            tmpIndex+=1;
 
             appWidgetManager.updateAppWidget(componentName, remoteViews);
         }
 
+        // 오른쪽 클릭
+        if(action.equals(ACTION_BTN_RIGHT) && num >= 0 && num < 6){
+
+            //버튼 클릭 결과를 로그로 확인.
+            Log.d("이벤트클릭 테스트 ","오른쪽클릭!");
+
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+
+            RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
+            ComponentName componentName = new ComponentName(context, WidgetProject.class);
+
+            ((MainActivity)MainActivity.context_main).widgetNum+=1;
+            ((MainActivity)MainActivity.context_main).widgetChangeDays+=1;
+            ((MainActivity)MainActivity.context_main).widgetDate= new Date(((MainActivity)MainActivity.context_main).widgetNow+(1000*60*60*24*((MainActivity)MainActivity.context_main).widgetChangeDays));
+            getTime = sdf.format(((MainActivity)MainActivity.context_main).widgetDate);
+
+            Log.d("testNumber", ((MainActivity)MainActivity.context_main).widgetNum+"");
+            Log.d("testChangeDay", ((MainActivity)MainActivity.context_main).widgetChangeDays+","+ ((MainActivity)MainActivity.context_main).widgetDate);
+
+            String tmx= ((MainActivity) MainActivity.context_main).widgetTmx[((MainActivity)MainActivity.context_main).widgetNum];
+            String tmn= ((MainActivity)MainActivity.context_main).widgetTmn[((MainActivity)MainActivity.context_main).widgetNum];
+            String tvSky= ((MainActivity)MainActivity.context_main).tvWidgetSky[((MainActivity)MainActivity.context_main).widgetNum];
+            int imgSky = ((MainActivity)MainActivity.context_main).imgWidgetSky[((MainActivity)MainActivity.context_main).widgetNum];
+
+            Log.d("values.", tmx+","+tmn+","+tvSky+","+imgSky);
+
+            remoteViews.setTextViewText(R.id.tv_tmx, tmx);
+            remoteViews.setTextViewText(R.id.tv_tmn, tmn);
+            remoteViews.setTextViewText(R.id.tv_sky, tvSky);
+            remoteViews.setImageViewResource(R.id.img_sky, imgSky);
+            remoteViews.setTextViewText(R.id.update, getHour);
+            remoteViews.setTextViewText(R.id.widget_date, getTime);
+
+            appWidgetManager.updateAppWidget(componentName, remoteViews);
+        }
+
+        // 새로고침버튼 클릭
+        if (action.equals(ACTION_BTN_REFRESH)){
+            Log.d("refresh","클릭");
+
+            ((MainActivity)MainActivity.context_main).widgetDate= new Date(((MainActivity)MainActivity.context_main).widgetNow);
+            getTime = sdf.format(((MainActivity)MainActivity.context_main).widgetDate);
+
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+
+            RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
+            ComponentName componentName = new ComponentName(context, WidgetProject.class);
+
+            ((MainActivity)MainActivity.context_main).widgetNum=0;
+            ((MainActivity)MainActivity.context_main).widgetChangeDays=0;
+
+            String location1= ((MainActivity)MainActivity.context_main).address1;
+            String location2= ((MainActivity)MainActivity.context_main).address2;
+            String tmx= ((MainActivity) MainActivity.context_main).widgetTmx[0];
+            String tmn= ((MainActivity)MainActivity.context_main).widgetTmn[0];
+            String tvSky= ((MainActivity)MainActivity.context_main).tvWidgetSky[0];
+            int imgSky = ((MainActivity)MainActivity.context_main).imgWidgetSky[0];
+
+            remoteViews.setTextViewText(R.id.tv_tmx, tmx);
+            remoteViews.setTextViewText(R.id.tv_tmn, tmn);
+            remoteViews.setImageViewResource(R.id.img_sky, imgSky);
+            remoteViews.setTextViewText(R.id.update, getHour);
+            remoteViews.setTextViewText(R.id.widget_date, getTime);
+            remoteViews.setTextViewText(R.id.tv_sky, tvSky);
+            remoteViews.setTextViewText(R.id.tv_loc_1, location1);
+            remoteViews.setTextViewText(R.id.tv_loc_2, location2);
+
+            appWidgetManager.updateAppWidget(componentName, remoteViews);
+        }
+
+    }
+
+    @Override
+    public void onEnabled(Context context) {
+        // Enter relevant functionality for when the first widget is created
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        // Enter relevant functionality for when the last widget is disabled
     }
 
 
