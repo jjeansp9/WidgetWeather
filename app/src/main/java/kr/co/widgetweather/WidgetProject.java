@@ -16,6 +16,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import kr.co.widgetweather.activities.MainActivity;
+import kr.co.widgetweather.network.RetrofitHelper;
+import kr.co.widgetweather.network.RetrofitService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 /**
  * Implementation of App Widget functionality.
@@ -60,14 +66,9 @@ public class WidgetProject extends AppWidgetProvider {
 //        remoteViews.setOnClickPendingIntent(R.id.refresh_click, pendingIntentRefresh);
 
         // 위의 코드를 아래코드 형태로 단축
-
-        // 왼쪽클릭
-        remoteViews.setOnClickPendingIntent(R.id.previous, PendingIntent.getBroadcast(context,0, new Intent(context, WidgetProject.class).setAction(ACTION_BTN_LEFT), 0));
-        // 오른쪽클릭
-        remoteViews.setOnClickPendingIntent(R.id.next, PendingIntent.getBroadcast(context,0, new Intent(context, WidgetProject.class).setAction(ACTION_BTN_RIGHT), 0));
-        // 새로고침
-        remoteViews.setOnClickPendingIntent(R.id.refresh_click, PendingIntent.getBroadcast(context,0, new Intent(context, WidgetProject.class).setAction(ACTION_BTN_REFRESH), 0));
-
+        remoteViews.setOnClickPendingIntent(R.id.previous, PendingIntent.getBroadcast(context,0, new Intent(context, WidgetProject.class).setAction(ACTION_BTN_LEFT), 0)); // 왼쪽 클릭
+        remoteViews.setOnClickPendingIntent(R.id.next, PendingIntent.getBroadcast(context,0, new Intent(context, WidgetProject.class).setAction(ACTION_BTN_RIGHT), 0)); // 오른쪽 클릭
+        remoteViews.setOnClickPendingIntent(R.id.refresh_click, PendingIntent.getBroadcast(context,0, new Intent(context, WidgetProject.class).setAction(ACTION_BTN_REFRESH), 0)); // 새로고침 아이콘 클릭
 
         long now= System.currentTimeMillis();
         Date date = new Date(now); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
@@ -78,14 +79,12 @@ public class WidgetProject extends AppWidgetProvider {
         String getTime = sdf.format(((MainActivity)MainActivity.context_main).widgetDate);
         String getHour = sdfHour.format(date);
 
-
         String location1= ((MainActivity)MainActivity.context_main).address1;
         String location2= ((MainActivity)MainActivity.context_main).address2;
         String tmx= ((MainActivity) MainActivity.context_main).widgetTmx[0];
         String tmn= ((MainActivity)MainActivity.context_main).widgetTmn[0];
         String tvSky= ((MainActivity)MainActivity.context_main).tvWidgetSky[0];
         int imgSky = ((MainActivity)MainActivity.context_main).imgWidgetSky[0];
-
 
         remoteViews.setTextViewText(R.id.tv_tmx, tmx);
         remoteViews.setTextViewText(R.id.tv_tmn, tmn);
@@ -150,7 +149,6 @@ public class WidgetProject extends AppWidgetProvider {
             remoteViews.setImageViewResource(R.id.img_sky, imgSky);
             remoteViews.setTextViewText(R.id.widget_date, getTime);
             remoteViews.setTextViewText(R.id.update, getHour);
-
 
             appWidgetManager.updateAppWidget(componentName, remoteViews);
         }
