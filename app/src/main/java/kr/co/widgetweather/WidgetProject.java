@@ -45,17 +45,25 @@ public class WidgetProject extends AppWidgetProvider {
 
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
 
-        Intent intentLeft = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_LEFT);
-        PendingIntent pendingIntentLeft = PendingIntent.getBroadcast(context,0, intentLeft, 0);
-        remoteViews.setOnClickPendingIntent(R.id.previous, pendingIntentLeft);
 
-        Intent intentRight = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_RIGHT);
-        PendingIntent pendingIntentRight = PendingIntent.getBroadcast(context,0, intentRight, 0);
-        remoteViews.setOnClickPendingIntent(R.id.next, pendingIntentRight);
 
-        Intent intentRefresh = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_REFRESH);
-        PendingIntent pendingIntentRefresh = PendingIntent.getBroadcast(context,0, intentRefresh, 0);
-        remoteViews.setOnClickPendingIntent(R.id.refresh_click, pendingIntentRefresh);
+//        Intent intentLeft = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_LEFT);
+//        PendingIntent pendingIntentLeft = PendingIntent.getBroadcast(context,0, intentLeft, 0);
+//        remoteViews.setOnClickPendingIntent(R.id.previous, pendingIntentLeft);
+//
+//        Intent intentRight = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_RIGHT);
+//        PendingIntent pendingIntentRight = PendingIntent.getBroadcast(context,0, intentRight, 0);
+//        remoteViews.setOnClickPendingIntent(R.id.next, pendingIntentRight);
+//
+//        Intent intentRefresh = new Intent(context, WidgetProject.class).setAction(ACTION_BTN_REFRESH);
+//        PendingIntent pendingIntentRefresh = PendingIntent.getBroadcast(context,0, intentRefresh, 0);
+//        remoteViews.setOnClickPendingIntent(R.id.refresh_click, pendingIntentRefresh);
+
+        // 위의 코드를 아래코드 형태로 단축
+        remoteViews.setOnClickPendingIntent(R.id.previous, PendingIntent.getBroadcast(context,0, new Intent(context, WidgetProject.class).setAction(ACTION_BTN_LEFT), 0));
+        remoteViews.setOnClickPendingIntent(R.id.next, PendingIntent.getBroadcast(context,0, new Intent(context, WidgetProject.class).setAction(ACTION_BTN_RIGHT), 0));
+        remoteViews.setOnClickPendingIntent(R.id.refresh_click, PendingIntent.getBroadcast(context,0, new Intent(context, WidgetProject.class).setAction(ACTION_BTN_REFRESH), 0));
+
 
         long now= System.currentTimeMillis();
         Date date = new Date(now); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*2))
