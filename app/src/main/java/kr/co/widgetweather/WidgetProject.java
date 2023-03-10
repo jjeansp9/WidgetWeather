@@ -60,8 +60,12 @@ public class WidgetProject extends AppWidgetProvider {
 //        remoteViews.setOnClickPendingIntent(R.id.refresh_click, pendingIntentRefresh);
 
         // 위의 코드를 아래코드 형태로 단축
+
+        // 왼쪽클릭
         remoteViews.setOnClickPendingIntent(R.id.previous, PendingIntent.getBroadcast(context,0, new Intent(context, WidgetProject.class).setAction(ACTION_BTN_LEFT), 0));
+        // 오른쪽클릭
         remoteViews.setOnClickPendingIntent(R.id.next, PendingIntent.getBroadcast(context,0, new Intent(context, WidgetProject.class).setAction(ACTION_BTN_RIGHT), 0));
+        // 새로고침
         remoteViews.setOnClickPendingIntent(R.id.refresh_click, PendingIntent.getBroadcast(context,0, new Intent(context, WidgetProject.class).setAction(ACTION_BTN_REFRESH), 0));
 
 
