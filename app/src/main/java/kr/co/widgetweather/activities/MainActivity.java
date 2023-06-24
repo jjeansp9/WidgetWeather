@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     String nx= "57"; // 위도
     String ny= "127"; // 경도
-    String regId= "11B10101"; // 예보구역 코드
+    String regId= "11B10101"; // 예보구역 코드.
 
     TextView loc;
     TextView tmp;
