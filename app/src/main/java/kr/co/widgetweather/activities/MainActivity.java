@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     String nx= "57"; // 위도
     String ny= "127"; // 경도
-    String regId= "11B10101"; // 예보구역 코드.
+    String regId= "11B10101"; // 예보구역 코드
 
     TextView loc;
     TextView tmp;
@@ -295,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     + "&ny=" + lng; // 예보지점 y좌표
             Log.d("values", regId);
 
-            // 중기예보.
+            // 중기예보
             String apiUrl2= "https://apis.data.go.kr/1360000/MidFcstInfoService/getMidTa?"
                     + "serviceKey=" + apiKey // api 키
                     + "&pageNo=" + pageNo // 페이지 번호

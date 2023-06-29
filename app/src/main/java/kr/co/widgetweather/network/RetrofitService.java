@@ -1,23 +1,50 @@
 package kr.co.widgetweather.network;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import kr.co.widgetweather.model.Body;
 import kr.co.widgetweather.model.Item;
 import kr.co.widgetweather.model.Items;
 import kr.co.widgetweather.model.Result;
 import retrofit2.Call;
+import retrofit2.Response;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
 public interface RetrofitService {
 
-    @GET("getMidTa?serviceKey=CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D")
-        Call<kr.co.widgetweather.model.Response> getJson(
+    @GET("getVilageFcst?serviceKey=CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D")
+        Call<String> getJson(
         @Query("pageNo") String pageNo,
         @Query("numOfRows") String numOfRows,
         @Query("dataType") String dataType,
-        @Query("regId") String regId,
-        @Query("tmFc") String tmFc
+        @Query("base_date") String baseDate,
+        @Query("base_time") String baseTime,
+        @Query("nx") String nx,
+        @Query("ny") String ny
     );
+
+    @GET("getMidLandFcst?serviceKey=CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D")
+    Call<String> getJson2(
+            @Query("pageNo") String pageNo,
+            @Query("numOfRows") String numOfRows,
+            @Query("dataType") String dataType,
+            @Query("regId") String regId,
+            @Query("tmFc") String tmFc
+    );
+
+    @GET("getMidTa?serviceKey=CUMIKCkTvdkEuHPM3gdWXxBJ4DyeIHFWvrt8iMu6ZIcrRUhNv2dDE6G985PAAStITAlrPPrSMSjL2eBgPgk%2Bww%3D%3D")
+    Call<String> getJson3(
+            @Query("pageNo") String pageNo,
+            @Query("numOfRows") String numOfRows,
+            @Query("dataType") String dataType,
+            @Query("regId") String regId,
+            @Query("tmFc") String tmFc
+    );
+
+
+
 }
 
 

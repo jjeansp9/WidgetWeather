@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "kr.co.widgetweather"
-        minSdk 26
-        targetSdk 32
+        minSdk 23
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -50,6 +50,7 @@ dependencies {
 
     // 당겨서 새로고침 기능을 사용하기 위한 라이브러리
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+    implementation 'com.github.bumptech.glide:glide:4.15.0'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
