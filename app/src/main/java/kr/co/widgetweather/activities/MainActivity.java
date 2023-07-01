@@ -263,8 +263,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             String fcstDate = null;
             String fcstTime = null;
 
+            // 디바이스에 저장된 단말기 위치의 위도,경도 값 불러오기
             SharedPreferences pref= getSharedPreferences("location", MODE_PRIVATE);
-
             nx= pref.getString("nx", nx);
             ny= pref.getString( "ny", ny);
 
@@ -398,7 +398,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                     skyCurrent = "흐림";
                                 }
 
-                                // 문자열로 변환한 하늘상태 데이터를 디바이스에 저장
+                                // 문자열로 변환한 하늘상태 데이터를 디바이스에 저장.
                                 SharedPreferences skyPref= getSharedPreferences("weather", MODE_PRIVATE);
                                 SharedPreferences.Editor editor = skyPref.edit();
                                 editor.putString("sky", skyCurrent);
@@ -557,8 +557,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
         return strWeek;
     }
-
-
 }
 
 
