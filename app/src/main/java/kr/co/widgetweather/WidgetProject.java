@@ -95,7 +95,7 @@ public class WidgetProject extends AppWidgetProvider {
 
         String action = intent.getAction();
 
-        if (action.equals(ACTION_BTN_LEFT)){ // 왼쪽 화살표 클릭시 동작
+        if (action.equals(ACTION_BTN_LEFT)){ // 왼쪽 화살표 클릭시 동작.
 
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_project);
