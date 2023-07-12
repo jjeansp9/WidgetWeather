@@ -74,7 +74,7 @@ public class WidgetProject extends AppWidgetProvider {
         tmpCurrent= prefWeather.getString("tmp"+0, tmpCurrent);
         views.setTextViewText(R.id.tv_tmp, tmpCurrent);
 
-        // 디바이스에 저장된 문자열에 따라 어울리는 이미지로 변경
+        // 디바이스에 저장된 문자열에 따라 어울리는 이미지로 변경.
         skyCurrent= prefWeather.getString("sky", skyCurrent);
         if(skyCurrent == ""){
             views.setImageViewResource(R.id.img_sky, R.drawable.weather_sunny);
