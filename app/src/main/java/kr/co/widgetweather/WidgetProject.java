@@ -51,10 +51,7 @@ public class WidgetProject extends AppWidgetProvider {
         appWidgetManager.updateAppWidget(appWidgetIds, remoteViews);
 
         updateAppWidget(context, appWidgetManager, appWidgetIds[0]);
-
-
     }
-
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
             int appWidgetId) {
