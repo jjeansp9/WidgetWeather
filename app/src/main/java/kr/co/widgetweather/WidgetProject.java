@@ -61,7 +61,7 @@ public class WidgetProject extends AppWidgetProvider {
         String tmpCurrent="";
         String skyCurrent="";
 
-        // 디바이스에 저장된 주소 데이터를 가져온 후 view에 데이터값으로 텍스트 변경.
+        // 디바이스에 저장된 주소 데이터를 가져온 후 view에 데이터값으로 텍스트 변경
         SharedPreferences prefLoc= context.getSharedPreferences("location", MODE_PRIVATE);
         address= prefLoc.getString("address", address);
         views.setTextViewText(R.id.tv_loc, address);
