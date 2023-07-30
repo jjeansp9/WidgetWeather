@@ -416,7 +416,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                                 itemNum=0;
                                 changeDay+=1;
 
-                                date = new Date(now+(1000*60*60*24*changeDay)); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*1))
+                                date = new Date(now+(1000*60*60*24*changeDay)); // 현재시간에서 하루 더하기 : new Date(now+(1000*60*60*24*1)).
                                 getTime= sdf.format(date);
                             }
 
