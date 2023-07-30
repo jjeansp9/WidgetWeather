@@ -51,10 +51,7 @@ public class WidgetProject extends AppWidgetProvider {
         appWidgetManager.updateAppWidget(appWidgetIds, remoteViews);
 
         updateAppWidget(context, appWidgetManager, appWidgetIds[0]);
-
-
     }
-
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
             int appWidgetId) {
@@ -69,7 +66,7 @@ public class WidgetProject extends AppWidgetProvider {
         address= prefLoc.getString("address", address);
         views.setTextViewText(R.id.tv_loc, address);
 
-        // 디바이스에 저장된 온도 데이터 텍스트 변경
+        // 디바이스에 저장된 온도 데이터 텍스트 변경.
         SharedPreferences prefWeather= context.getSharedPreferences("weather", MODE_PRIVATE);
         tmpCurrent= prefWeather.getString("tmp"+0, tmpCurrent);
         views.setTextViewText(R.id.tv_tmp, tmpCurrent);
